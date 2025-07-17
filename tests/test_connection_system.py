@@ -3,7 +3,13 @@ Test file for the connection detection system implementation
 Requirements: 3.1 - 同色ぷよの隣接判定と連結グループの検出のテスト
 """
 
-from main import Puyo, PlayField
+import sys
+import os
+# Add the parent directory to sys.path to allow imports from src
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.puyo import Puyo
+from src.playfield import PlayField
 
 
 def test_find_connected_groups_basic():

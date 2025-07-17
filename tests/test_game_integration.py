@@ -3,7 +3,17 @@ Integration test file for the game system
 Requirements: 統合テスト - ゲームの基本機能が正常に動作することを確認
 """
 
-from main import PuyoPuyoGame, Puyo, PuyoPair, PlayField, InputHandler, PuyoManager
+import sys
+import os
+# Add the parent directory to sys.path to allow imports from src
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.game import PuyoPuyoGame
+from src.puyo import Puyo
+from src.puyo_pair import PuyoPair
+from src.playfield import PlayField
+from src.input_handler import InputHandler
+from src.puyo_manager import PuyoManager
 import unittest.mock as mock
 
 
@@ -28,6 +38,7 @@ class MockPyxel:
         self.KEY_ESCAPE = 'ESCAPE'
         self.KEY_G = 'G'
         self.KEY_C = 'C'
+        self.KEY_E = 'E'
     
     def init(self, width, height, title):
         self.init_called = True
@@ -86,7 +97,7 @@ def test_game_initialization():
     """ゲームの初期化をテスト"""
     mock_pyxel = MockPyxel()
     
-    with mock.patch('main.pyxel', mock_pyxel):
+    with mock.patch('src.game.pyxel', mock_pyxel):
         # ゲーム初期化のみテスト（run()は呼ばない）
         game = PuyoPuyoGame.__new__(PuyoPuyoGame)
         
@@ -114,7 +125,7 @@ def test_input_handler_functionality():
     """InputHandlerの基本機能をテスト"""
     mock_pyxel = MockPyxel()
     
-    with mock.patch('main.pyxel', mock_pyxel):
+    with mock.patch('src.input_handler.pyxel', mock_pyxel):
         input_handler = InputHandler()
         
         # 初期状態では何も押されていない
@@ -162,7 +173,7 @@ def test_game_update_structure():
     """ゲームのupdate処理の構造をテスト"""
     mock_pyxel = MockPyxel()
     
-    with mock.patch('main.pyxel', mock_pyxel):
+    with mock.patch('src.game.pyxel', mock_pyxel), mock.patch('src.input_handler.pyxel', mock_pyxel):
         # ゲーム初期化
         game = PuyoPuyoGame.__new__(PuyoPuyoGame)
         mock_pyxel.init(320, 480, "Puyo Puyo Puzzle Game")
@@ -189,7 +200,7 @@ def test_puyo_pair_movement_integration():
     """ぷよペアの移動統合テスト"""
     mock_pyxel = MockPyxel()
     
-    with mock.patch('main.pyxel', mock_pyxel):
+    with mock.patch('src.game.pyxel', mock_pyxel), mock.patch('src.input_handler.pyxel', mock_pyxel):
         # ゲーム初期化
         game = PuyoPuyoGame.__new__(PuyoPuyoGame)
         mock_pyxel.init(320, 480, "Puyo Puyo Puzzle Game")
@@ -221,7 +232,7 @@ def test_gravity_system_integration():
     """重力システムの統合テスト"""
     mock_pyxel = MockPyxel()
     
-    with mock.patch('main.pyxel', mock_pyxel):
+    with mock.patch('src.game.pyxel', mock_pyxel), mock.patch('src.input_handler.pyxel', mock_pyxel):
         # ゲーム初期化
         game = PuyoPuyoGame.__new__(PuyoPuyoGame)
         mock_pyxel.init(320, 480, "Puyo Puyo Puzzle Game")
@@ -247,7 +258,7 @@ def test_connection_detection_integration():
     """連結判定システムの統合テスト"""
     mock_pyxel = MockPyxel()
     
-    with mock.patch('main.pyxel', mock_pyxel):
+    with mock.patch('src.game.pyxel', mock_pyxel), mock.patch('src.input_handler.pyxel', mock_pyxel):
         # ゲーム初期化
         game = PuyoPuyoGame.__new__(PuyoPuyoGame)
         mock_pyxel.init(320, 480, "Puyo Puyo Puzzle Game")
@@ -275,7 +286,7 @@ def test_game_systems_interaction():
     """ゲームシステム間の相互作用をテスト"""
     mock_pyxel = MockPyxel()
     
-    with mock.patch('main.pyxel', mock_pyxel):
+    with mock.patch('src.game.pyxel', mock_pyxel), mock.patch('src.input_handler.pyxel', mock_pyxel):
         # ゲーム初期化
         game = PuyoPuyoGame.__new__(PuyoPuyoGame)
         mock_pyxel.init(320, 480, "Puyo Puyo Puzzle Game")
@@ -307,7 +318,7 @@ def test_critical_methods_exist():
     """重要なメソッドが存在することを確認"""
     mock_pyxel = MockPyxel()
     
-    with mock.patch('main.pyxel', mock_pyxel):
+    with mock.patch('src.game.pyxel', mock_pyxel), mock.patch('src.input_handler.pyxel', mock_pyxel):
         # ゲーム初期化
         game = PuyoPuyoGame.__new__(PuyoPuyoGame)
         mock_pyxel.init(320, 480, "Puyo Puyo Puzzle Game")
@@ -337,7 +348,7 @@ def test_update_method_calls_required_functions():
     """updateメソッドが必要な関数を呼び出すことを確認"""
     mock_pyxel = MockPyxel()
     
-    with mock.patch('main.pyxel', mock_pyxel):
+    with mock.patch('src.game.pyxel', mock_pyxel), mock.patch('src.input_handler.pyxel', mock_pyxel):
         # ゲーム初期化
         game = PuyoPuyoGame.__new__(PuyoPuyoGame)
         mock_pyxel.init(320, 480, "Puyo Puyo Puzzle Game")

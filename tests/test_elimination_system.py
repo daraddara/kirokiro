@@ -3,7 +3,13 @@ Test file for the elimination system implementation
 Requirements: 3.1, 5.2 - ぷよ消去処理とアニメーションのテスト
 """
 
-from main import Puyo, PlayField
+import sys
+import os
+# Add the parent directory to sys.path to allow imports from src
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.puyo import Puyo
+from src.playfield import PlayField
 
 
 def test_erase_puyo_groups():

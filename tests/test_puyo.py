@@ -3,7 +3,16 @@ Test file for Puyo, PuyoPair, PlayField, InputHandler, and PuyoManager classes
 Requirements: 2.1, 2.2, 3.1, 4.1, 5.1 - 各クラスの基本機能をテストする
 """
 
-from main import Puyo, PuyoPair, PlayField, InputHandler, PuyoManager
+import sys
+import os
+# Add the parent directory to sys.path to allow imports from src
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.puyo import Puyo
+from src.puyo_pair import PuyoPair
+from src.playfield import PlayField
+from src.input_handler import InputHandler
+from src.puyo_manager import PuyoManager
 
 
 def test_puyo_creation():

@@ -1,5 +1,5 @@
-from puyo import Puyo
-from puyo_pair import PuyoPair
+from src.puyo import Puyo
+from src.puyo_pair import PuyoPair
 
 
 class PuyoManager:

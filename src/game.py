@@ -1,9 +1,9 @@
 import pyxel
-from puyo import Puyo
-from puyo_pair import PuyoPair
-from playfield import PlayField
-from input_handler import InputHandler
-from puyo_manager import PuyoManager
+from src.puyo import Puyo
+from src.puyo_pair import PuyoPair
+from src.playfield import PlayField
+from src.input_handler import InputHandler
+from src.puyo_manager import PuyoManager
 
 
 class PuyoPuyoGame:

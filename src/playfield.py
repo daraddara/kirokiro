@@ -1,5 +1,5 @@
 import pyxel
-from puyo import Puyo
+from src.puyo import Puyo
 
 
 class PlayField:
@@ -535,3 +535,86 @@ class PlayField:
                 colors.append(None)
         
         return colors
+    
+    def get_floating_puyos(self):
+        """
+        浮いているぷよ（下に支えがないぷよ）を検出する
+        
+        Returns:
+            list: [(x, y, puyo), ...] 浮いているぷよのリスト
+        
+        Requirements: 3.3 - 浮いているぷよの検出
+        """
+        floating_puyos = []
+        
+        for y in range(self.height):
+            for x in range(self.width):
+                puyo = self.grid[y][x]
+                if puyo is not None:
+                    # 浮いているかどうかをチェック
+                    if self._is_puyo_floating(x, y):
+                        floating_puyos.append((x, y, puyo))
+        
+        return floating_puyos
+    
+    def _is_puyo_floating(self, x, y):
+        """
+        指定位置のぷよが浮いているかどうかをチェック
+        
+        Args:
+            x (int): X座標
+            y (int): Y座標
+        
+        Returns:
+            bool: 浮いている場合True
+        """
+        # 最下段のぷよは浮いていない
+        if y == self.height - 1:
+            return False
+        
+        # 下に何かあるかチェック
+        below_y = y + 1
+        while below_y < self.height:
+            if self.grid[below_y][x] is not None:
+                # 下にぷよがある場合は浮いていない
+                return False
+            below_y += 1
+        
+        # 下に何もない場合は浮いている
+        return True
+    
+    def calculate_fall_distance(self, x, y):
+        """
+        指定位置のぷよが落下する距離を計算する
+        
+        Args:
+            x (int): X座標
+            y (int): Y座標
+        
+        Returns:
+            int: 落下距離（段数）
+        
+        Requirements: 3.3 - 落下距離の計算
+        """
+        # ぷよが存在しない場合は0
+        if not self.is_valid_position(x, y) or self.grid[y][x] is None:
+            return 0
+        
+        # 最下段の場合は落下しない
+        if y == self.height - 1:
+            return 0
+        
+        # 下方向に空きスペースを探す
+        fall_distance = 0
+        check_y = y + 1
+        
+        while check_y < self.height:
+            if self.grid[check_y][x] is None:
+                # 空きがある場合は落下距離を増やす
+                fall_distance += 1
+                check_y += 1
+            else:
+                # ぷよがある場合は停止
+                break
+        
+        return fall_distance

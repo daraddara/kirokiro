@@ -3,7 +3,14 @@ Test file for the kick system implementation
 Requirements: 2.3 - キックシステムによる回転補助のテスト
 """
 
-from main import Puyo, PuyoPair, PlayField
+import sys
+import os
+# Add the parent directory to sys.path to allow imports from src
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.puyo import Puyo
+from src.puyo_pair import PuyoPair
+from src.playfield import PlayField
 
 
 def test_normal_rotation_without_kick():

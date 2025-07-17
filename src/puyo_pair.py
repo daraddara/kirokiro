@@ -1,4 +1,4 @@
-from puyo import Puyo
+from src.puyo import Puyo
 
 
 class PuyoPair:

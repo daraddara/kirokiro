@@ -3,7 +3,15 @@ Test file for the gravity system implementation
 Requirements: 3.3 - 重力処理のテスト（ぷよ固定後の重力適用、浮いているぷよの落下処理、重力処理のアニメーション）
 """
 
-from main import Puyo, PuyoPair, PlayField, PuyoManager
+import sys
+import os
+# Add the parent directory to sys.path to allow imports from src
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.puyo import Puyo
+from src.puyo_pair import PuyoPair
+from src.playfield import PlayField
+from src.puyo_manager import PuyoManager
 
 
 def test_apply_gravity_basic():

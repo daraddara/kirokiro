@@ -3,7 +3,16 @@ Test file for the fall system implementation
 Requirements: 2.1, 2.4, 2.5 - 落下システムのテスト
 """
 
-from main import Puyo, PuyoPair, PlayField, PuyoManager, PuyoPuyoGame
+import sys
+import os
+# Add the parent directory to sys.path to allow imports from src
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.puyo import Puyo
+from src.puyo_pair import PuyoPair
+from src.playfield import PlayField
+from src.puyo_manager import PuyoManager
+from src.game import PuyoPuyoGame
 
 
 def test_fall_system_initialization():

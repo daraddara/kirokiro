@@ -1,4 +1,4 @@
-from game import PuyoPuyoGame
+from src.game import PuyoPuyoGame
 
 
 def main():
