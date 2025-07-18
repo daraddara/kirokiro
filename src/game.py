@@ -47,22 +47,12 @@ class PuyoPuyoGame:
         # 現在操作中のぷよペア
         self.current_falling_pair = None
         
-        # テスト用のぷよを作成（Puyoクラスの動作確認用）
-        self.test_puyos = [
-            Puyo(1, 0, 0),  # 赤いぷよ
-            Puyo(2, 1, 0),  # オレンジのぷよ
-            Puyo(3, 2, 0),  # 緑のぷよ
-            Puyo(4, 3, 0),  # 青いぷよ
-        ]
-        
-        # テスト用のプレイフィールドを作成（PlayFieldクラスの動作確認用）
+        # プレイフィールドを作成
         self.playfield = PlayField()
         
-        # プレイフィールドにテスト用ぷよを配置
-        self.playfield.place_puyo(1, 10, Puyo(2))  # オレンジのぷよを下部に配置
-        self.playfield.place_puyo(2, 11, Puyo(4))  # 青いぷよを最下段に配置
-        self.playfield.place_puyo(3, 10, Puyo(1))  # 赤いぷよを下部に配置
-        self.playfield.place_puyo(4, 11, Puyo(3))  # 緑のぷよを最下段に配置
+        # デバッグモード設定
+        self.debug_mode = False
+        self.test_puyos = []  # テスト用ぷよ（デバッグモード時のみ使用）
         
         # 入力処理システムを作成（InputHandlerクラスの動作確認用）
         self.input_handler = InputHandler()
@@ -585,12 +575,13 @@ class PuyoPuyoGame:
                         # 白い枠で強調表示
                         pyxel.rectb(screen_x, screen_y, 24, 24, 7)
         
-        # テスト用ぷよの描画（Puyoクラスの動作確認）
-        for i, puyo in enumerate(self.test_puyos):
-            # プレイフィールド内の位置に描画
-            screen_x = playfield_x + (i * 24)  # 24ピクセル間隔で配置
-            screen_y = playfield_y + 24  # プレイフィールドの上から2行目
-            puyo.draw(screen_x, screen_y)
+        # デバッグモードの場合のみテスト用ぷよを描画
+        if self.debug_mode:
+            for i, puyo in enumerate(self.test_puyos):
+                # プレイフィールド内の位置に描画
+                screen_x = playfield_x + (i * 24)  # 24ピクセル間隔で配置
+                screen_y = playfield_y + 24  # プレイフィールドの上から2行目
+                puyo.draw(screen_x, screen_y)
         
         # 現在落下中のぷよペアの描画
         if self.current_falling_pair is not None:
