@@ -666,6 +666,50 @@ class PuyoPuyoGame:
                 return True
         return False
     
+    def check_game_over_advanced(self):
+        """
+        高度なゲームオーバー判定
+        Requirements: 4.3, 4.4 - より詳細なゲームオーバー判定
+        
+        Returns:
+            tuple: (is_game_over: bool, reason: str)
+        """
+        # 基本的な上端到達判定
+        for x in range(6):
+            if not self.playfield.is_empty(x, 0):
+                return True, f"プレイフィールド上端到達 (列 {x})"
+        
+        # 新しいぷよペアが配置できない場合の判定
+        if self.current_falling_pair is not None:
+            # 現在のぷよペアが初期位置にいる場合のみチェック
+            current_pos = self.current_falling_pair.get_position()
+            if current_pos[1] <= 1:  # 上部2行以内にいる場合
+                if not self.playfield.can_move_puyo_pair(self.current_falling_pair, 0, 0):
+                    return True, "新しいぷよペアが配置不可能"
+        
+        # 危険レベルの判定（上から3行以内にぷよがある場合）
+        danger_level = self.get_danger_level()
+        if danger_level >= 3:
+            # 危険レベルが高い場合の警告（ゲームオーバーではないが警告）
+            return False, f"危険レベル: {danger_level}"
+        
+        return False, "正常"
+    
+    def get_danger_level(self):
+        """
+        危険レベルを取得する（上部にどれだけぷよが積まれているか）
+        
+        Returns:
+            int: 危険レベル（0-12、高いほど危険）
+        """
+        danger_count = 0
+        # 上から3行をチェック
+        for y in range(3):
+            for x in range(6):
+                if not self.playfield.is_empty(x, y):
+                    danger_count += 1
+        return danger_count
+    
     def handle_game_over(self):
         """
         ゲームオーバー処理
@@ -764,32 +808,52 @@ class PuyoPuyoGame:
         # 画面中央に最終スコアを表示
         final_score = self.score_manager.get_score()
         
-        # 背景の描画
-        bg_width = 200
-        bg_height = 80
+        # 背景の描画（より大きなサイズ）
+        bg_width = 240
+        bg_height = 120
         bg_x = (320 - bg_width) // 2
         bg_y = (480 - bg_height) // 2
         
         pyxel.rect(bg_x, bg_y, bg_width, bg_height, 0)  # 黒い背景
         pyxel.rectb(bg_x, bg_y, bg_width, bg_height, 7)  # 白い枠
         
+        # "GAME OVER" ラベル
+        game_over_text = "GAME OVER"
+        game_over_x = bg_x + (bg_width - len(game_over_text) * 4) // 2
+        game_over_y = bg_y + 10
+        pyxel.text(game_over_x, game_over_y, game_over_text, 8)  # 赤色
+        
         # "FINAL SCORE" ラベル
         label_text = "FINAL SCORE"
         label_x = bg_x + (bg_width - len(label_text) * 4) // 2
-        label_y = bg_y + 15
+        label_y = bg_y + 30
         pyxel.text(label_x, label_y, label_text, 7)
         
         # 最終スコア値
         score_text = self.score_manager.format_score(final_score)
         score_x = bg_x + (bg_width - len(score_text) * 4) // 2
-        score_y = bg_y + 35
+        score_y = bg_y + 50
         pyxel.text(score_x, score_y, score_text, 10)  # 明るい緑色
+        
+        # 危険レベル表示（デバッグ情報）
+        danger_level = self.get_danger_level()
+        if danger_level > 0:
+            danger_text = f"Danger Level: {danger_level}"
+            danger_x = bg_x + (bg_width - len(danger_text) * 4) // 2
+            danger_y = bg_y + 70
+            pyxel.text(danger_x, danger_y, danger_text, 9)  # オレンジ色
         
         # 操作説明
         instruction_text = "Press R to Restart"
         instruction_x = bg_x + (bg_width - len(instruction_text) * 4) // 2
-        instruction_y = bg_y + 55
+        instruction_y = bg_y + 90
         pyxel.text(instruction_x, instruction_y, instruction_text, 7)
+        
+        # 追加の操作説明
+        menu_text = "Press Q to Quit"
+        menu_x = bg_x + (bg_width - len(menu_text) * 4) // 2
+        menu_y = bg_y + 105
+        pyxel.text(menu_x, menu_y, menu_text, 7)
     
     def show_final_score_screen(self):
         """

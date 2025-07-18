@@ -157,3 +157,14 @@ class InputHandler:
             bool: 連鎖アニメーションテストを実行する場合True
         """
         return pyxel.btnp(pyxel.KEY_A)
+    
+    def should_restart_game(self):
+        """
+        ゲーム再開始を実行すべきかチェック
+        
+        Returns:
+            bool: ゲーム再開始する場合True
+        
+        Requirements: 4.4 - ゲーム再開始処理
+        """
+        return pyxel.btnp(pyxel.KEY_R)
