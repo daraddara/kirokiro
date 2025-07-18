@@ -87,7 +87,11 @@ class PuyoManager:
         """
         # 次のペアを現在のペアにする
         self.current_pair = self.next_pair
-        self.current_pair.set_position(2, 0)  # 初期位置にリセット
+        
+        # 初期位置を設定（中央上部）
+        # サブぷよが画面内に収まるように、メインぷよを1行下に配置
+        self.current_pair.set_position(2, 1)  # 初期位置を1行下に調整
+        self.current_pair.rotation = 0  # 上向きの回転状態に設定
         
         # 新しい次のペアを生成
         self.next_pair = self.create_random_puyo_pair()

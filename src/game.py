@@ -743,17 +743,33 @@ class PuyoPuyoGame:
         Returns:
             tuple: (is_game_over: bool, reason: str)
         """
+        from src.debug_utils import print_playfield_state, analyze_game_over_state
+        
         # 基本的な上端到達判定
         for x in range(6):
             if not self.playfield.is_empty(x, 0):
+                print("\n*** ゲームオーバー検出: 上端到達 ***")
+                analyze_game_over_state(self)
+                print_playfield_state(self.playfield, self.current_falling_pair)
                 return True, f"プレイフィールド上端到達 (列 {x})"
         
         # 新しいぷよペアが配置できない場合の判定
         if self.current_falling_pair is not None:
-            # 現在のぷよペアが初期位置にいる場合のみチェック
-            current_pos = self.current_falling_pair.get_position()
-            if current_pos[1] <= 1:  # 上部2行以内にいる場合
-                if not self.playfield.can_move_puyo_pair(self.current_falling_pair, 0, 0):
+            # 現在のぷよペアの位置を取得
+            main_pos, sub_pos = self.current_falling_pair.get_puyo_positions()
+            
+            # 初期位置（メインぷよのY座標が0）の場合のみチェック
+            if main_pos[1] == 0:
+                # 現在の位置に既にぷよがあるかチェック
+                main_empty = self.playfield.is_empty(main_pos[0], main_pos[1])
+                sub_empty = self.playfield.is_empty(sub_pos[0], sub_pos[1])
+                
+                if not main_empty or not sub_empty:
+                    print("\n*** ゲームオーバー検出: 新しいぷよペアが配置不可能 ***")
+                    print(f"メインぷよ位置 {main_pos} は空か: {main_empty}")
+                    print(f"サブぷよ位置 {sub_pos} は空か: {sub_empty}")
+                    analyze_game_over_state(self)
+                    print_playfield_state(self.playfield, self.current_falling_pair)
                     return True, "新しいぷよペアが配置不可能"
         
         # 危険レベルの判定（上から3行以内にぷよがある場合）
@@ -985,20 +1001,15 @@ class PuyoPuyoGame:
             print(f"ゲームオーバー検出: {reason}")
             self.handle_game_over(reason)  # 理由を渡す
             self.game_state_manager.end_game()
+            return  # ゲームオーバー後は処理を終了
         elif "危険レベル" in reason:
             # 危険レベルが高い場合は警告表示
             if self.frame_count % 60 == 0:  # 1秒ごとに警告表示
                 print(f"警告: {reason}")
                 
-        # 新しいぷよペアが生成されたときにゲームオーバー判定
-        if self.current_falling_pair is not None:
-            current_pos = self.current_falling_pair.get_position()
-            if current_pos[1] <= 1:  # 上部2行以内にいる場合
-                if not self.playfield.can_move_puyo_pair(self.current_falling_pair, 0, 0):
-                    reason = "新しいぷよペアが配置不可能"
-                    print(f"ゲームオーバー検出: {reason}")
-                    self.handle_game_over(reason)
-                    self.game_state_manager.end_game()
+        # 新しいぷよペアが生成されたときのゲームオーバー判定は
+        # check_game_over_advancedメソッドで既に行われているため、
+        # ここでは追加のチェックは不要
     
     def update_game_over_logic(self):
         """
