@@ -543,7 +543,13 @@ class PuyoPuyoGame:
         playfield_width = 144  # 6 * 24ピクセル
         playfield_height = 288  # 12 * 24ピクセル
         
-        # プレイフィールドの描画（PlayFieldクラスの動作確認）
+        # プレイフィールドの背景と枠線を描画
+        # Requirements: 4.1 - プレイフィールドの枠線表示
+        pyxel.rect(playfield_x - 2, playfield_y - 2, playfield_width + 4, playfield_height + 4, 5)  # 紫色の背景
+        pyxel.rectb(playfield_x - 3, playfield_y - 3, playfield_width + 6, playfield_height + 6, 7)  # 白色の外枠
+        pyxel.rectb(playfield_x - 1, playfield_y - 1, playfield_width + 2, playfield_height + 2, 13)  # 薄い紫色の内枠
+        
+        # プレイフィールドの描画
         self.playfield.draw(playfield_x, playfield_y)
         
         # 消去予定のぷよを点滅表示（アニメーション効果）
@@ -568,56 +574,106 @@ class PuyoPuyoGame:
         if self.current_falling_pair is not None:
             self.current_falling_pair.draw(playfield_x, playfield_y)
         
-        # 次のぷよペアのプレビュー表示（PuyoManagerクラスの動作確認）
+        # 次のぷよペアのプレビュー表示エリア
+        # Requirements: 4.2 - 次のぷよペアの表示エリア
         next_preview_x = playfield_x + playfield_width + 20
         next_preview_y = playfield_y + 20
         
+        # 次のぷよペアの表示エリアの背景と枠線
+        preview_width = 60
+        preview_height = 60
+        pyxel.rect(next_preview_x - 5, next_preview_y - 20, preview_width, preview_height, 1)  # 暗い青色の背景
+        pyxel.rectb(next_preview_x - 5, next_preview_y - 20, preview_width, preview_height, 7)  # 白色の枠線
+        
         # "NEXT" ラベルの表示
-        pyxel.text(next_preview_x, next_preview_y - 15, "NEXT:", 7)
+        pyxel.text(next_preview_x + 10, next_preview_y - 15, "NEXT", 7)
         
         # 次のペアのプレビューを描画
         self.puyo_manager.draw_next_pair_preview(next_preview_x, next_preview_y)
         
-        # 操作説明の表示
-        pyxel.text(50, 400, "Controls:", 7)
-        pyxel.text(50, 410, "Arrow Keys: Move/Drop", 7)
-        pyxel.text(50, 420, "X/UP: Rotate CW, Z: Rotate CCW", 7)
-        pyxel.text(50, 430, "Q/ESC: Quit Game", 7)
-        pyxel.text(50, 440, "G: Test Gravity, C: Test Connection", 7)
-        pyxel.text(50, 450, "E: Test Elimination, A: Test Chain", 7)
-        pyxel.text(50, 460, "Test Pair: Red+Green (controllable)", 7)
+        # 操作説明パネルの表示
+        # Requirements: 4.1 - 基本UI要素の実装
+        controls_x = 10
+        controls_y = 380
+        controls_width = 300
+        controls_height = 90
+        
+        # 操作説明パネルの背景と枠線
+        pyxel.rect(controls_x, controls_y, controls_width, controls_height, 1)  # 暗い青色の背景
+        pyxel.rectb(controls_x, controls_y, controls_width, controls_height, 7)  # 白色の枠線
+        
+        # 操作説明のタイトル
+        pyxel.text(controls_x + 10, controls_y + 5, "CONTROLS:", 10)  # 緑色のタイトル
+        
+        # 操作説明の表示（2列レイアウト）
+        col1_x = controls_x + 10
+        col2_x = controls_x + 160
+        
+        # 左列
+        pyxel.text(col1_x, controls_y + 20, "Arrow Keys: Move/Drop", 7)
+        pyxel.text(col1_x, controls_y + 30, "X/UP: Rotate CW", 7)
+        pyxel.text(col1_x, controls_y + 40, "Z: Rotate CCW", 7)
+        pyxel.text(col1_x, controls_y + 50, "R: Restart Game", 7)
+        pyxel.text(col1_x, controls_y + 60, "Q/ESC: Quit Game", 7)
+        
+        # 右列（デバッグ用）
+        pyxel.text(col2_x, controls_y + 20, "G: Test Gravity", 6)
+        pyxel.text(col2_x, controls_y + 30, "C: Test Connection", 6)
+        pyxel.text(col2_x, controls_y + 40, "E: Test Elimination", 6)
+        pyxel.text(col2_x, controls_y + 50, "A: Test Chain", 6)
+        
+        # ゲーム情報パネルの表示
+        info_x = 10
+        info_y = 10
+        info_width = 70
+        info_height = 60
+        
+        # ゲーム情報パネルの背景と枠線
+        pyxel.rect(info_x, info_y, info_width, info_height, 1)  # 暗い青色の背景
+        pyxel.rectb(info_x, info_y, info_width, info_height, 7)  # 白色の枠線
         
         # デバッグ情報の表示
-        pyxel.text(10, 10, f"Frame: {self.frame_count}", 7)
+        pyxel.text(info_x + 5, info_y + 5, f"Frame: {self.frame_count}", 7)
         
         # 重力処理状態の表示
         if self.gravity_active:
-            pyxel.text(10, 20, "GRAVITY ACTIVE", 8)  # 赤色で表示
+            pyxel.text(info_x + 5, info_y + 20, "GRAVITY ACTIVE", 8)  # 赤色で表示
         else:
-            pyxel.text(10, 20, "Gravity: Idle", 7)   # 白色で表示
+            pyxel.text(info_x + 5, info_y + 20, "Gravity: Idle", 7)   # 白色で表示
         
         # 消去処理状態の表示
         if self.elimination_active:
-            pyxel.text(10, 30, "ELIMINATION ACTIVE", 9)  # オレンジ色で表示
+            pyxel.text(info_x + 5, info_y + 30, "ELIMINATION ACTIVE", 9)  # オレンジ色で表示
         else:
-            pyxel.text(10, 30, "Elimination: Idle", 7)   # 白色で表示
+            pyxel.text(info_x + 5, info_y + 30, "Elimination: Idle", 7)   # 白色で表示
         
         # 現在のぷよペア状態の表示
         if self.current_falling_pair is not None:
             pair_pos = self.current_falling_pair.get_position()
-            pyxel.text(10, 40, f"Pair: ({pair_pos[0]}, {pair_pos[1]})", 7)
+            pyxel.text(info_x + 5, info_y + 40, f"Pair: ({pair_pos[0]}, {pair_pos[1]})", 7)
         else:
-            pyxel.text(10, 40, "Pair: None", 7)
+            pyxel.text(info_x + 5, info_y + 40, "Pair: None", 7)
         
         # 連鎖状態の表示
         if self.chain_active:
-            pyxel.text(10, 50, f"CHAIN: {self.chain_level}", 11)  # 緑色で表示
+            pyxel.text(info_x + 5, info_y + 50, f"CHAIN: {self.chain_level}", 11)  # 緑色で表示
         else:
-            pyxel.text(10, 50, "Chain: None", 7)   # 白色で表示
+            pyxel.text(info_x + 5, info_y + 50, "Chain: None", 7)   # 白色で表示
+        
+        # スコア表示エリア
+        # Requirements: 4.1 - スコア表示エリアのレイアウト
+        score_area_x = next_preview_x - 5
+        score_area_y = next_preview_y + preview_height + 10
+        score_area_width = preview_width
+        score_area_height = 60
+        
+        # スコア表示エリアの背景と枠線
+        pyxel.rect(score_area_x, score_area_y, score_area_width, score_area_height, 5)  # 紫色の背景
+        pyxel.rectb(score_area_x, score_area_y, score_area_width, score_area_height, 7)  # 白色の枠線
         
         # 強化されたスコア表示
         # Requirements: 4.1, 4.4 - 現在スコアの画面表示とアニメーション
-        self.draw_enhanced_score_display(250, 100)
+        self.draw_enhanced_score_display(score_area_x + 5, score_area_y + 5)
         
         # 連鎖アニメーション表示
         # Requirements: 5.3 - 連鎖数の視覚的表示
