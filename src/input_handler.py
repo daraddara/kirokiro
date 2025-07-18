@@ -148,3 +148,12 @@ class InputHandler:
             bool: 消去処理テストを実行する場合True
         """
         return pyxel.btnp(pyxel.KEY_E)
+    
+    def should_test_chain_animation(self):
+        """
+        連鎖アニメーションテストを実行すべきかチェック（デバッグ用）
+        
+        Returns:
+            bool: 連鎖アニメーションテストを実行する場合True
+        """
+        return pyxel.btnp(pyxel.KEY_A)

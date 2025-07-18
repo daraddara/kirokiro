@@ -39,6 +39,7 @@ class MockPyxel:
         self.KEY_G = 'G'
         self.KEY_C = 'C'
         self.KEY_E = 'E'
+        self.KEY_A = 'A'
     
     def init(self, width, height, title):
         self.init_called = True

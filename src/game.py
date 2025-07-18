@@ -4,6 +4,7 @@ from src.puyo_pair import PuyoPair
 from src.playfield import PlayField
 from src.input_handler import InputHandler
 from src.puyo_manager import PuyoManager
+from src.score_manager import ScoreManager
 
 
 class PuyoPuyoGame:
@@ -68,6 +69,9 @@ class PuyoPuyoGame:
         # ぷよ管理システムを作成（PuyoManagerクラスの動作確認用）
         self.puyo_manager = PuyoManager()
         
+        # スコア管理システムを作成（ScoreManagerクラスの動作確認用）
+        self.score_manager = ScoreManager()
+        
         # 最初の落下ペアを設定
         self.current_falling_pair = self.puyo_manager.get_current_pair()
         
@@ -83,6 +87,19 @@ class PuyoPuyoGame:
         self.elimination_timer = 0  # 消去アニメーションタイマー
         self.elimination_interval = 30  # 消去アニメーションの間隔（フレーム数）
         self.elimination_groups = []  # 消去予定のグループ
+        
+        # 連鎖システムの設定
+        # Requirements: 3.4 - 連鎖判定の実装
+        self.chain_level = 0  # 現在の連鎖レベル
+        self.chain_active = False  # 連鎖処理中フラグ
+        self.total_chain_score = 0  # 連鎖による総スコア
+        
+        # 連鎖表示システムの設定
+        # Requirements: 5.3 - 連鎖数の視覚的表示
+        self.chain_display_timer = 0  # 連鎖表示タイマー
+        self.chain_display_duration = 60  # 連鎖表示の持続時間（フレーム数）
+        self.chain_animation_phase = 0  # アニメーション位相
+        self.show_chain_text = False  # 連鎖テキスト表示フラグ
         
         # デバッグ: 初期状態を確認
         print(f"Game initialized - gravity_active: {self.gravity_active}")
@@ -155,6 +172,21 @@ class PuyoPuyoGame:
         erasable_groups = self.playfield.find_erasable_groups()
         
         if erasable_groups:
+            # 連鎖レベルを増加（初回消去は連鎖レベル1）
+            if not self.chain_active:
+                self.chain_level = 1
+                self.chain_active = True
+                print(f"連鎖開始！連鎖レベル: {self.chain_level}")
+            else:
+                self.chain_level += 1
+                print(f"連鎖継続！連鎖レベル: {self.chain_level}")
+            
+            # 連鎖表示を開始
+            # Requirements: 5.3 - 連鎖数の視覚的表示
+            self.show_chain_text = True
+            self.chain_display_timer = 0
+            self.chain_animation_phase = 0
+            
             # 消去処理を開始
             self.elimination_active = True
             self.elimination_timer = 0
@@ -163,8 +195,13 @@ class PuyoPuyoGame:
             # デバッグ情報
             print(f"消去処理開始: {len(erasable_groups)}グループ、{sum(len(group) for group in erasable_groups)}個のぷよ")
         else:
-            # 消去するものがない場合は重力処理に移行
-            self.apply_gravity_after_fixation()
+            # 消去するものがない場合
+            if self.chain_active:
+                # 連鎖が終了
+                self.end_chain()
+            else:
+                # 通常の重力処理に移行
+                self.apply_gravity_after_fixation()
     
     def update_elimination_system(self):
         """
@@ -184,6 +221,15 @@ class PuyoPuyoGame:
             
             if eliminated:
                 print(f"ぷよ消去完了: {total_erased}個のぷよ、{group_count}グループ")
+                
+                # スコア計算と加算
+                # Requirements: 3.2 - スコア加算
+                chain_score = self.score_manager.calculate_chain_score(self.elimination_groups, self.chain_level)
+                self.score_manager.add_score(chain_score)
+                self.total_chain_score += chain_score
+                
+                print(f"スコア加算: {chain_score}点 (連鎖レベル: {self.chain_level})")
+                print(f"現在のスコア: {self.score_manager.get_score()}点")
                 
                 # 消去処理完了、重力処理に移行
                 self.elimination_active = False
@@ -237,7 +283,7 @@ class PuyoPuyoGame:
     def check_for_chain_elimination(self):
         """
         連鎖のための消去判定をチェック
-        Requirements: 3.4 - 連鎖判定（将来の実装のための準備）
+        Requirements: 3.4 - 連鎖判定の実装
         """
         # 重力処理後に新たな消去可能グループがあるかチェック
         erasable_groups = self.playfield.find_erasable_groups()
@@ -248,7 +294,52 @@ class PuyoPuyoGame:
             self.start_elimination_process()
         else:
             # 連鎖終了、通常のゲーム状態に戻る
-            print("消去・重力処理完了")
+            if self.chain_active:
+                self.end_chain()
+            else:
+                print("消去・重力処理完了")
+    
+    def end_chain(self):
+        """
+        連鎖を終了し、連鎖関連の状態をリセットする
+        Requirements: 3.4 - 連鎖の終了判定
+        """
+        if self.chain_active:
+            print(f"連鎖終了！最終連鎖レベル: {self.chain_level}")
+            
+            # 連鎖状態をリセット
+            self.chain_active = False
+            final_chain_level = self.chain_level
+            self.chain_level = 0
+            self.total_chain_score = 0
+            
+            # 連鎖表示を終了
+            self.show_chain_text = False
+            self.chain_display_timer = 0
+            
+            # 連鎖終了後の処理（将来的にスコア計算などを追加）
+            print(f"連鎖完了: {final_chain_level}連鎖")
+        
+        print("通常のゲーム状態に戻る")
+    
+    def update_chain_display_system(self):
+        """
+        連鎖表示システムの更新処理
+        Requirements: 5.3 - 連鎖数の視覚的表示
+        """
+        if not self.show_chain_text:
+            return
+        
+        # 連鎖表示タイマーの更新
+        self.chain_display_timer += 1
+        
+        # アニメーション位相の更新（サイン波でアニメーション）
+        self.chain_animation_phase = (self.chain_animation_phase + 0.2) % (2 * 3.14159)
+        
+        # 表示時間が経過したら表示を終了
+        if self.chain_display_timer >= self.chain_display_duration:
+            self.show_chain_text = False
+            self.chain_display_timer = 0
     
     def handle_puyo_pair_input(self):
         """
@@ -307,6 +398,10 @@ class PuyoPuyoGame:
         if self.input_handler.should_test_elimination():
             self.test_elimination_process()
         
+        # 連鎖アニメーションテスト機能（Aキー）
+        if self.input_handler.should_test_chain_animation():
+            self.test_chain_animation()
+        
         # 消去システムの更新
         # Requirements: 3.1, 5.2 - 消去処理とアニメーション
         self.update_elimination_system()
@@ -314,6 +409,10 @@ class PuyoPuyoGame:
         # 重力システムの更新
         # Requirements: 3.3 - 浮いているぷよの落下処理、重力処理のアニメーション
         self.update_gravity_system()
+        
+        # 連鎖表示システムの更新
+        # Requirements: 5.3 - 連鎖数の視覚的表示
+        self.update_chain_display_system()
         
         # 消去・重力処理中でない場合のみ通常の落下システムと入力処理を実行
         if not self.elimination_active and not self.gravity_active:
@@ -373,6 +472,29 @@ class PuyoPuyoGame:
         
         print("=== 消去処理テスト実行 ===")
         print("4つの赤いぷよを左上に配置して消去処理を開始しました")
+    
+    def test_chain_animation(self):
+        """
+        連鎖アニメーションのテスト機能
+        Requirements: 5.3 - 連鎖数の視覚的表示のテスト
+        """
+        # 連鎖レベルを循環させる（1-5連鎖）
+        if not self.show_chain_text:
+            # アニメーションが表示されていない場合、1連鎖から開始
+            self.chain_level = 1
+        else:
+            # 既に表示中の場合、次のレベルに進む
+            self.chain_level += 1
+            if self.chain_level > 5:
+                self.chain_level = 1
+        
+        # 連鎖アニメーションを開始
+        self.show_chain_text = True
+        self.chain_display_timer = 0
+        self.chain_animation_phase = 0
+        
+        print(f"=== 連鎖アニメーションテスト実行 ===")
+        print(f"{self.chain_level}連鎖のアニメーションを表示します")
     
     def draw(self):
         """
@@ -435,8 +557,8 @@ class PuyoPuyoGame:
         pyxel.text(50, 410, "Arrow Keys: Move/Drop", 7)
         pyxel.text(50, 420, "X/UP: Rotate CW, Z: Rotate CCW", 7)
         pyxel.text(50, 430, "Q/ESC: Quit Game", 7)
-        pyxel.text(50, 440, "G: Test Gravity", 7)
-        pyxel.text(50, 450, "C: Test Connection", 7)
+        pyxel.text(50, 440, "G: Test Gravity, C: Test Connection", 7)
+        pyxel.text(50, 450, "E: Test Elimination, A: Test Chain", 7)
         pyxel.text(50, 460, "Test Pair: Red+Green (controllable)", 7)
         
         # デバッグ情報の表示
@@ -460,3 +582,44 @@ class PuyoPuyoGame:
             pyxel.text(10, 40, f"Pair: ({pair_pos[0]}, {pair_pos[1]})", 7)
         else:
             pyxel.text(10, 40, "Pair: None", 7)
+        
+        # 連鎖状態の表示
+        if self.chain_active:
+            pyxel.text(10, 50, f"CHAIN: {self.chain_level}", 11)  # 緑色で表示
+        else:
+            pyxel.text(10, 50, "Chain: None", 7)   # 白色で表示
+        
+        # スコア表示
+        # Requirements: 4.1 - 現在のスコアを表示する
+        current_score = self.score_manager.get_score()
+        score_text = f"SCORE: {self.score_manager.format_score(current_score)}"
+        pyxel.text(10, 60, score_text, 7)  # 白色で表示
+        
+        # 連鎖アニメーション表示
+        # Requirements: 5.3 - 連鎖数の視覚的表示
+        if self.show_chain_text and self.chain_level > 0:
+            # アニメーション効果（サイン波による拡大縮小）
+            import math
+            scale_factor = 1.0 + 0.3 * math.sin(self.chain_animation_phase)
+            
+            # 連鎖テキストの表示位置（画面中央）
+            chain_text = f"{self.chain_level} CHAIN!"
+            text_width = len(chain_text) * 4
+            text_x = (320 - text_width) // 2
+            text_y = 200
+            
+            # 背景の描画（黒い矩形）
+            bg_width = int(text_width * scale_factor) + 8
+            bg_height = int(8 * scale_factor) + 4
+            bg_x = text_x - (bg_width - text_width) // 2 - 4
+            bg_y = text_y - (bg_height - 8) // 2 - 2
+            pyxel.rect(bg_x, bg_y, bg_width, bg_height, 0)
+            pyxel.rectb(bg_x, bg_y, bg_width, bg_height, 7)
+            
+            # 連鎖数に応じた色の選択
+            chain_colors = [7, 8, 9, 10, 11, 12, 13, 14, 15]  # 白から様々な色
+            color_index = min(self.chain_level - 1, len(chain_colors) - 1)
+            chain_color = chain_colors[color_index]
+            
+            # 連鎖テキストの描画
+            pyxel.text(text_x, text_y, chain_text, chain_color)
