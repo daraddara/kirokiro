@@ -72,6 +72,15 @@ class PuyoPuyoGame:
         # スコア管理システムを作成（ScoreManagerクラスの動作確認用）
         self.score_manager = ScoreManager()
         
+        # スコア表示システムの初期化
+        # Requirements: 4.1, 4.4 - スコア表示とアニメーション
+        self.score_animation_active = False  # スコア更新アニメーションが進行中かどうか
+        self.score_animation_timer = 0  # スコアアニメーションのタイマー
+        self.score_animation_phase = 0.0  # スコアアニメーションの位相
+        self.last_displayed_score = 0  # 最後に表示されたスコア（アニメーション用）
+        self.score_increment_amount = 0  # スコア増加量（アニメーション用）
+        self.show_final_score = False  # 最終スコア表示フラグ
+        
         # 最初の落下ペアを設定
         self.current_falling_pair = self.puyo_manager.get_current_pair()
         
@@ -414,6 +423,10 @@ class PuyoPuyoGame:
         # Requirements: 5.3 - 連鎖数の視覚的表示
         self.update_chain_display_system()
         
+        # スコア表示システムの更新
+        # Requirements: 4.1, 4.4 - スコア表示とアニメーション
+        self.update_score_display_system()
+        
         # 消去・重力処理中でない場合のみ通常の落下システムと入力処理を実行
         if not self.elimination_active and not self.gravity_active:
             # 落下システムの更新
@@ -589,11 +602,9 @@ class PuyoPuyoGame:
         else:
             pyxel.text(10, 50, "Chain: None", 7)   # 白色で表示
         
-        # スコア表示
-        # Requirements: 4.1 - 現在のスコアを表示する
-        current_score = self.score_manager.get_score()
-        score_text = f"SCORE: {self.score_manager.format_score(current_score)}"
-        pyxel.text(10, 60, score_text, 7)  # 白色で表示
+        # 強化されたスコア表示
+        # Requirements: 4.1, 4.4 - 現在スコアの画面表示とアニメーション
+        self.draw_enhanced_score_display(250, 100)
         
         # 連鎖アニメーション表示
         # Requirements: 5.3 - 連鎖数の視覚的表示
@@ -623,3 +634,153 @@ class PuyoPuyoGame:
             
             # 連鎖テキストの描画
             pyxel.text(text_x, text_y, chain_text, chain_color)
+        
+        # 最終スコア表示
+        # Requirements: 4.4 - 最終スコアの表示
+        self.draw_final_score_display()
+    
+    def check_game_over(self):
+        """
+        ゲームオーバー判定
+        Requirements: 4.3, 4.4 - ゲームオーバー判定と最終スコア表示
+        
+        Returns:
+            bool: ゲームオーバーの場合True
+        """
+        # プレイフィールドの上端（y=0）にぷよがある場合はゲームオーバー
+        for x in range(6):
+            if not self.playfield.is_empty(x, 0):
+                return True
+        return False
+    
+    def handle_game_over(self):
+        """
+        ゲームオーバー処理
+        Requirements: 4.3, 4.4 - ゲームオーバー状態への遷移と最終スコア表示
+        """
+        # 最終スコア画面を表示
+        self.show_final_score_screen()
+        
+        # 現在のぷよペアを削除
+        self.current_falling_pair = None
+        
+        print(f"=== GAME OVER ===")
+        print(f"Final Score: {self.score_manager.format_score()}")
+        print("Press R to restart")
+    
+    def update_score_display_system(self):
+        """
+        スコア表示システムの更新処理
+        Requirements: 4.1, 4.4 - スコア表示とアニメーション
+        """
+        current_score = self.score_manager.get_score()
+        
+        # スコアが変更された場合、アニメーションを開始
+        if current_score != self.last_displayed_score:
+            self.score_increment_amount = current_score - self.last_displayed_score
+            self.score_animation_active = True
+            self.score_animation_timer = 0
+            self.score_animation_phase = 0.0
+            self.last_displayed_score = current_score
+        
+        # スコアアニメーションの更新
+        if self.score_animation_active:
+            self.score_animation_timer += 1
+            self.score_animation_phase = (self.score_animation_phase + 0.3) % (2 * 3.14159)
+            
+            # アニメーション終了判定（60フレーム = 1秒）
+            if self.score_animation_timer >= 60:
+                self.score_animation_active = False
+                self.score_animation_timer = 0
+    
+    def draw_enhanced_score_display(self, x, y):
+        """
+        強化されたスコア表示の描画
+        Requirements: 4.1, 4.4 - 現在スコアの画面表示とアニメーション
+        
+        Args:
+            x (int): 表示X座標
+            y (int): 表示Y座標
+        """
+        current_score = self.score_manager.get_score()
+        
+        # スコアラベルの表示
+        pyxel.text(x, y, "SCORE", 7)
+        
+        # スコア値の表示
+        score_text = self.score_manager.format_score(current_score)
+        score_y = y + 10
+        
+        # アニメーション効果
+        if self.score_animation_active:
+            import math
+            
+            # 点滅効果
+            blink_intensity = abs(math.sin(self.score_animation_phase * 2))
+            if blink_intensity > 0.5:
+                score_color = 10  # 明るい緑色
+            else:
+                score_color = 11  # 通常の緑色
+            
+            # 拡大効果
+            scale_factor = 1.0 + 0.2 * math.sin(self.score_animation_phase)
+            
+            # スコア増加量の表示
+            if self.score_increment_amount > 0:
+                increment_text = f"+{self.score_manager.format_score(self.score_increment_amount)}"
+                increment_y = score_y - 10 - int(5 * math.sin(self.score_animation_phase))
+                pyxel.text(x + 50, increment_y, increment_text, 8)  # 赤色で増加量表示
+        else:
+            score_color = 7  # 通常の白色
+        
+        # スコア値の描画
+        pyxel.text(x, score_y, score_text, score_color)
+        
+        # スコアの背景枠（見やすさ向上）
+        text_width = len(score_text) * 4
+        pyxel.rectb(x - 2, y - 2, max(text_width + 4, 50), 22, 7)
+    
+    def draw_final_score_display(self):
+        """
+        最終スコア表示の描画
+        Requirements: 4.4 - 最終スコアの表示
+        """
+        if not self.show_final_score:
+            return
+        
+        # 画面中央に最終スコアを表示
+        final_score = self.score_manager.get_score()
+        
+        # 背景の描画
+        bg_width = 200
+        bg_height = 80
+        bg_x = (320 - bg_width) // 2
+        bg_y = (480 - bg_height) // 2
+        
+        pyxel.rect(bg_x, bg_y, bg_width, bg_height, 0)  # 黒い背景
+        pyxel.rectb(bg_x, bg_y, bg_width, bg_height, 7)  # 白い枠
+        
+        # "FINAL SCORE" ラベル
+        label_text = "FINAL SCORE"
+        label_x = bg_x + (bg_width - len(label_text) * 4) // 2
+        label_y = bg_y + 15
+        pyxel.text(label_x, label_y, label_text, 7)
+        
+        # 最終スコア値
+        score_text = self.score_manager.format_score(final_score)
+        score_x = bg_x + (bg_width - len(score_text) * 4) // 2
+        score_y = bg_y + 35
+        pyxel.text(score_x, score_y, score_text, 10)  # 明るい緑色
+        
+        # 操作説明
+        instruction_text = "Press R to Restart"
+        instruction_x = bg_x + (bg_width - len(instruction_text) * 4) // 2
+        instruction_y = bg_y + 55
+        pyxel.text(instruction_x, instruction_y, instruction_text, 7)
+    
+    def show_final_score_screen(self):
+        """
+        最終スコア画面を表示する
+        Requirements: 4.4 - 最終スコアの表示
+        """
+        self.show_final_score = True
