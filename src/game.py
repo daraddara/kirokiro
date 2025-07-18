@@ -411,6 +411,10 @@ class PuyoPuyoGame:
             if self.playfield.can_move_puyo_pair(self.current_falling_pair, 0, 1):
                 self.current_falling_pair.move(0, 1)
                 self.fall_timer = 0  # タイマーリセット
+                
+                # 高速落下時は小さな効果音を再生（移動音より小さく）
+                # Requirements: 12.2 - 高速落下時の効果音
+                self.audio_manager.play_sound(SoundType.MOVE)
     
     def update(self):
         """
@@ -1028,9 +1032,17 @@ class PuyoPuyoGame:
         メニュー状態での処理
         Requirements: 4.3 - メニュー画面での処理
         """
+        # メニュー画面のBGMを再生（現在のBGMがメニューBGMでない場合）
+        # Requirements: 12.3 - メニュー画面のBGM
+        if self.audio_manager.current_bgm != BGMType.MENU:
+            self.audio_manager.play_bgm(BGMType.MENU)
+        
         # メニュー状態では自動的にプレイ状態に移行（簡易実装）
         # 将来的にはメニュー選択機能を追加
         if self.game_state_manager.get_time_in_current_state() > 60:  # 1秒後に自動開始
+            # 選択音を再生
+            # Requirements: 12.2 - メニュー選択時の効果音
+            self.audio_manager.play_sound(SoundType.ROTATE)
             self.game_state_manager.start_game()
     
     def update_playing_logic(self):
@@ -1063,11 +1075,17 @@ class PuyoPuyoGame:
         """
         # リスタート入力の処理
         if self.input_handler.should_restart_game():
+            # リスタート効果音
+            # Requirements: 12.2 - リスタート時の効果音
+            self.audio_manager.play_sound(SoundType.ROTATE)
             self.restart_game()
             self.game_state_manager.restart_game()
         
         # メニューに戻る処理
         if self.input_handler.should_quit_game():
+            # メニューに戻る効果音
+            # Requirements: 12.2 - メニューに戻る時の効果音
+            self.audio_manager.play_sound(SoundType.CLEAR)
             self.game_state_manager.return_to_menu()
     
     def restart_game(self):
