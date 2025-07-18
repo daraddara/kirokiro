@@ -5,6 +5,7 @@ from src.playfield import PlayField
 from src.input_handler import InputHandler
 from src.puyo_manager import PuyoManager
 from src.score_manager import ScoreManager
+from src.game_state import GameStateManager, GameState
 
 
 class PuyoPuyoGame:
@@ -80,6 +81,10 @@ class PuyoPuyoGame:
         self.last_displayed_score = 0  # 最後に表示されたスコア（アニメーション用）
         self.score_increment_amount = 0  # スコア増加量（アニメーション用）
         self.show_final_score = False  # 最終スコア表示フラグ
+        
+        # ゲーム状態管理システムの初期化
+        # Requirements: 4.3, 4.4 - ゲーム状態の管理と遷移制御
+        self.game_state_manager = GameStateManager()
         
         # 最初の落下ペアを設定
         self.current_falling_pair = self.puyo_manager.get_current_pair()
@@ -426,6 +431,14 @@ class PuyoPuyoGame:
         # スコア表示システムの更新
         # Requirements: 4.1, 4.4 - スコア表示とアニメーション
         self.update_score_display_system()
+        
+        # ゲーム状態管理システムの更新
+        # Requirements: 4.3, 4.4 - ゲーム状態の管理と遷移制御
+        self.game_state_manager.update()
+        
+        # ゲーム状態に応じた処理分岐
+        # Requirements: 4.3, 4.4 - 各状態での処理分岐
+        self.update_state_specific_logic()
         
         # 消去・重力処理中でない場合のみ通常の落下システムと入力処理を実行
         if not self.elimination_active and not self.gravity_active:
@@ -784,3 +797,67 @@ class PuyoPuyoGame:
         Requirements: 4.4 - 最終スコアの表示
         """
         self.show_final_score = True
+    
+    def update_state_specific_logic(self):
+        """
+        ゲーム状態に応じた処理分岐
+        Requirements: 4.3, 4.4 - 各状態での処理分岐
+        """
+        current_state = self.game_state_manager.get_current_state()
+        
+        if current_state == GameState.MENU:
+            self.update_menu_logic()
+        elif current_state == GameState.PLAYING:
+            self.update_playing_logic()
+        elif current_state == GameState.GAME_OVER:
+            self.update_game_over_logic()
+    
+    def update_menu_logic(self):
+        """
+        メニュー状態での処理
+        Requirements: 4.3 - メニュー画面での処理
+        """
+        # メニュー状態では自動的にプレイ状態に移行（簡易実装）
+        # 将来的にはメニュー選択機能を追加
+        if self.game_state_manager.get_time_in_current_state() > 60:  # 1秒後に自動開始
+            self.game_state_manager.start_game()
+    
+    def update_playing_logic(self):
+        """
+        プレイ中状態での処理
+        Requirements: 4.3 - ゲームプレイ中の処理
+        """
+        # ゲームオーバー判定
+        if self.check_game_over():
+            self.handle_game_over()
+            self.game_state_manager.end_game()
+    
+    def update_game_over_logic(self):
+        """
+        ゲームオーバー状態での処理
+        Requirements: 4.4 - ゲームオーバー画面での処理
+        """
+        # リスタート入力の処理
+        if self.input_handler.should_restart_game():
+            self.restart_game()
+            self.game_state_manager.restart_game()
+    
+    def restart_game(self):
+        """
+        ゲームを再開始する
+        Requirements: 4.4 - ゲーム再開始処理
+        """
+        # ゲーム状態をリセット
+        self.score_manager.reset()
+        self.playfield.clear()
+        self.current_falling_pair = self.puyo_manager.get_current_pair()
+        self.show_final_score = False
+        
+        # 各システムの状態をリセット
+        self.gravity_active = False
+        self.elimination_active = False
+        self.chain_active = False
+        self.chain_level = 0
+        self.show_chain_text = False
+        
+        print("Game restarted!")

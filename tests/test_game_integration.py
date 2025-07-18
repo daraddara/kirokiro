@@ -113,6 +113,7 @@ def test_game_initialization():
         assert hasattr(game, 'current_falling_pair')
         assert hasattr(game, 'gravity_active')
         assert hasattr(game, 'fall_timer')
+        assert hasattr(game, 'game_state_manager')
         
         # 初期状態の確認
         assert game.gravity_active == False
