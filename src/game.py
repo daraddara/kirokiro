@@ -6,6 +6,7 @@ from src.input_handler import InputHandler
 from src.puyo_manager import PuyoManager
 from src.score_manager import ScoreManager
 from src.game_state import GameStateManager, GameState
+from src.audio_manager import AudioManager, SoundType, BGMType
 
 
 class PuyoPuyoGame:
@@ -41,8 +42,8 @@ class PuyoPuyoGame:
         # 落下システムの設定
         # Requirements: 2.1 - 重力に従ってぷよを移動させる
         self.fall_timer = 0  # 自動落下タイマー
-        self.fall_interval = 60  # 通常の落下間隔（60フレーム = 1秒）
-        self.fast_fall_interval = 3  # 高速落下間隔（3フレーム）
+        self.fall_interval = 45  # 通常の落下間隔（45フレーム = 0.75秒）- 操作感改善
+        self.fast_fall_interval = 2  # 高速落下間隔（2フレーム）- より素早い高速落下
         
         # 現在操作中のぷよペア
         self.current_falling_pair = None
@@ -109,6 +110,13 @@ class PuyoPuyoGame:
         # Requirements: 4.3, 4.4 - ゲームオーバー判定と表示
         self.game_over_reason = ""  # ゲームオーバーの理由
         
+        # 音響システムの初期化
+        # Requirements: 12.1 - AudioManagerクラスの実装
+        self.audio_manager = AudioManager()
+        
+        # ゲーム開始時のBGM再生
+        self.audio_manager.play_bgm(BGMType.GAME)
+        
         # デバッグ: 初期状態を確認
         print(f"Game initialized - gravity_active: {self.gravity_active}")
     
@@ -160,6 +168,10 @@ class PuyoPuyoGame:
         # サブぷよを配置
         sub_puyo = self.current_falling_pair.get_sub_puyo()
         self.playfield.place_puyo(sub_pos[0], sub_pos[1], sub_puyo)
+        
+        # 着地音を再生
+        # Requirements: 12.2 - ぷよ着地時の効果音
+        self.audio_manager.play_sound(SoundType.LAND)
         
         # Start elimination process after puyo fixation
         # Requirements: 3.1, 5.2 - Elimination process after puyo fixation
@@ -229,6 +241,15 @@ class PuyoPuyoGame:
             
             if eliminated:
                 print(f"ぷよ消去完了: {total_erased}個のぷよ、{group_count}グループ")
+                
+                # 消去音または連鎖音を再生
+                # Requirements: 12.2 - ぷよ消去時・連鎖時の効果音
+                if self.chain_level > 1:
+                    # 連鎖時は連鎖音を再生（連鎖レベルに応じた音程変化）
+                    self.audio_manager.play_sound(SoundType.CHAIN, self.chain_level)
+                else:
+                    # 通常の消去音を再生
+                    self.audio_manager.play_sound(SoundType.CLEAR)
                 
                 # スコア計算と加算
                 # Requirements: 3.2 - スコア加算
@@ -361,17 +382,29 @@ class PuyoPuyoGame:
         if self.input_handler.should_move_left():
             if self.playfield.can_move_puyo_pair(self.current_falling_pair, -1, 0):
                 self.current_falling_pair.move(-1, 0)
+                # 移動音を再生
+                # Requirements: 12.2 - ぷよ移動時の効果音
+                self.audio_manager.play_sound(SoundType.MOVE)
         
         if self.input_handler.should_move_right():
             if self.playfield.can_move_puyo_pair(self.current_falling_pair, 1, 0):
                 self.current_falling_pair.move(1, 0)
+                # 移動音を再生
+                # Requirements: 12.2 - ぷよ移動時の効果音
+                self.audio_manager.play_sound(SoundType.MOVE)
         
         # 回転の処理（キックシステム付き）
         if self.input_handler.should_rotate_clockwise():
-            self.playfield.rotate_puyo_pair_with_kick(self.current_falling_pair, True)
+            if self.playfield.rotate_puyo_pair_with_kick(self.current_falling_pair, True):
+                # 回転音を再生
+                # Requirements: 12.2 - ぷよ回転時の効果音
+                self.audio_manager.play_sound(SoundType.ROTATE)
         
         if self.input_handler.should_rotate_counterclockwise():
-            self.playfield.rotate_puyo_pair_with_kick(self.current_falling_pair, False)
+            if self.playfield.rotate_puyo_pair_with_kick(self.current_falling_pair, False):
+                # 回転音を再生
+                # Requirements: 12.2 - ぷよ回転時の効果音
+                self.audio_manager.play_sound(SoundType.ROTATE)
         
         # 高速落下の処理（個別の下移動）
         if self.input_handler.should_fast_drop():
@@ -389,6 +422,10 @@ class PuyoPuyoGame:
         
         # 入力処理の更新
         self.input_handler.update()
+        
+        # 音響システムの更新
+        # Requirements: 12.1 - AudioManagerの更新処理
+        self.audio_manager.update()
         
         # 基本的なキー入力処理
         if self.input_handler.should_quit_game():
@@ -806,6 +843,14 @@ class PuyoPuyoGame:
         # ゲームオーバーの理由を保存
         self.game_over_reason = reason
         
+        # ゲームオーバー音を再生
+        # Requirements: 12.2 - ゲームオーバー時の効果音
+        self.audio_manager.play_sound(SoundType.GAME_OVER)
+        
+        # BGMをゲームオーバー用に切り替え
+        # Requirements: 12.3 - ゲームオーバー時の音楽
+        self.audio_manager.play_bgm(BGMType.GAME_OVER)
+        
         # 最終スコア画面を表示
         self.show_final_score_screen()
         
@@ -1045,5 +1090,9 @@ class PuyoPuyoGame:
         
         # ゲームオーバー関連の状態をリセット
         self.game_over_reason = ""
+        
+        # ゲームプレイ用BGMを再生
+        # Requirements: 12.3 - ゲームプレイ中のBGMループ再生
+        self.audio_manager.play_bgm(BGMType.GAME)
         
         print("Game restarted!")
