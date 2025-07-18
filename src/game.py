@@ -115,6 +115,10 @@ class PuyoPuyoGame:
         self.chain_animation_phase = 0  # アニメーション位相
         self.show_chain_text = False  # 連鎖テキスト表示フラグ
         
+        # ゲームオーバー関連の設定
+        # Requirements: 4.3, 4.4 - ゲームオーバー判定と表示
+        self.game_over_reason = ""  # ゲームオーバーの理由
+        
         # デバッグ: 初期状態を確認
         print(f"Game initialized - gravity_active: {self.gravity_active}")
     
@@ -531,6 +535,13 @@ class PuyoPuyoGame:
         # 画面をクリア（黒色 - デザイン文書の色定義に基づく）
         pyxel.cls(0)
         
+        # 危険レベルに応じた背景色の変更（ゲームオーバー警告）
+        # Requirements: 4.3, 4.4 - ゲームオーバー警告の視覚的表示
+        danger_level = self.get_danger_level()
+        if danger_level >= 3 and self.frame_count % 30 < 15:  # 0.5秒ごとに点滅
+            # 画面の上部に赤い警告帯を表示
+            pyxel.rect(0, 0, 320, 10, 8)  # 赤色の警告帯
+        
         # ゲームタイトルの表示
         title_text = "Puyo Puyo Puzzle Game"
         title_x = (320 - len(title_text) * 4) // 2  # 中央揃え
@@ -551,6 +562,17 @@ class PuyoPuyoGame:
         
         # プレイフィールドの描画
         self.playfield.draw(playfield_x, playfield_y)
+        
+        # 危険レベルの視覚的表示（上部3行の警告表示）
+        # Requirements: 4.3, 4.4 - ゲームオーバー警告の視覚的表示
+        danger_level = self.get_danger_level()
+        if danger_level >= 3:
+            # 上部3行に警告表示（点滅効果）
+            if self.frame_count % 30 < 15:  # 0.5秒ごとに点滅
+                for y in range(3):
+                    # 上部3行に半透明の赤い警告エリアを表示
+                    warning_y = playfield_y + y * 24
+                    pyxel.rect(playfield_x, warning_y, playfield_width, 2, 8)  # 赤色の警告線
         
         # 消去予定のぷよを点滅表示（アニメーション効果）
         if self.elimination_active and self.elimination_groups:
@@ -766,11 +788,17 @@ class PuyoPuyoGame:
                     danger_count += 1
         return danger_count
     
-    def handle_game_over(self):
+    def handle_game_over(self, reason="ゲームオーバー"):
         """
         ゲームオーバー処理
         Requirements: 4.3, 4.4 - ゲームオーバー状態への遷移と最終スコア表示
+        
+        Args:
+            reason (str): ゲームオーバーの理由
         """
+        # ゲームオーバーの理由を保存
+        self.game_over_reason = reason
+        
         # 最終スコア画面を表示
         self.show_final_score_screen()
         
@@ -778,6 +806,7 @@ class PuyoPuyoGame:
         self.current_falling_pair = None
         
         print(f"=== GAME OVER ===")
+        print(f"Reason: {reason}")
         print(f"Final Score: {self.score_manager.format_score()}")
         print("Press R to restart")
     
@@ -866,7 +895,7 @@ class PuyoPuyoGame:
         
         # 背景の描画（より大きなサイズ）
         bg_width = 240
-        bg_height = 120
+        bg_height = 140  # 高さを増やして理由表示のスペースを確保
         bg_x = (320 - bg_width) // 2
         bg_y = (480 - bg_height) // 2
         
@@ -878,6 +907,16 @@ class PuyoPuyoGame:
         game_over_x = bg_x + (bg_width - len(game_over_text) * 4) // 2
         game_over_y = bg_y + 10
         pyxel.text(game_over_x, game_over_y, game_over_text, 8)  # 赤色
+        
+        # ゲームオーバーの理由を表示
+        if hasattr(self, 'game_over_reason'):
+            reason_text = f"Reason: {self.game_over_reason}"
+            # 長すぎる場合は省略
+            if len(reason_text) > 30:
+                reason_text = reason_text[:27] + "..."
+            reason_x = bg_x + (bg_width - len(reason_text) * 4) // 2
+            reason_y = bg_y + 25
+            pyxel.text(reason_x, reason_y, reason_text, 9)  # オレンジ色
         
         # "FINAL SCORE" ラベル
         label_text = "FINAL SCORE"
@@ -947,10 +986,28 @@ class PuyoPuyoGame:
         プレイ中状態での処理
         Requirements: 4.3 - ゲームプレイ中の処理
         """
+        # 高度なゲームオーバー判定
+        is_game_over, reason = self.check_game_over_advanced()
+        
         # ゲームオーバー判定
-        if self.check_game_over():
-            self.handle_game_over()
+        if is_game_over:
+            print(f"ゲームオーバー検出: {reason}")
+            self.handle_game_over(reason)  # 理由を渡す
             self.game_state_manager.end_game()
+        elif "危険レベル" in reason:
+            # 危険レベルが高い場合は警告表示
+            if self.frame_count % 60 == 0:  # 1秒ごとに警告表示
+                print(f"警告: {reason}")
+                
+        # 新しいぷよペアが生成されたときにゲームオーバー判定
+        if self.current_falling_pair is not None:
+            current_pos = self.current_falling_pair.get_position()
+            if current_pos[1] <= 1:  # 上部2行以内にいる場合
+                if not self.playfield.can_move_puyo_pair(self.current_falling_pair, 0, 0):
+                    reason = "新しいぷよペアが配置不可能"
+                    print(f"ゲームオーバー検出: {reason}")
+                    self.handle_game_over(reason)
+                    self.game_state_manager.end_game()
     
     def update_game_over_logic(self):
         """
@@ -961,6 +1018,10 @@ class PuyoPuyoGame:
         if self.input_handler.should_restart_game():
             self.restart_game()
             self.game_state_manager.restart_game()
+        
+        # メニューに戻る処理
+        if self.input_handler.should_quit_game():
+            self.game_state_manager.return_to_menu()
     
     def restart_game(self):
         """
@@ -979,5 +1040,8 @@ class PuyoPuyoGame:
         self.chain_active = False
         self.chain_level = 0
         self.show_chain_text = False
+        
+        # ゲームオーバー関連の状態をリセット
+        self.game_over_reason = ""
         
         print("Game restarted!")
