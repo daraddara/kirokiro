@@ -18,25 +18,81 @@ class PuyoManager:
         # 利用可能な色（1-4）
         self.available_colors = [1, 2, 3, 4]
         
+        # 特殊ぷよの色コード
+        self.OBSTACLE_PUYO = 5  # お邪魔ぷよの色コード
+        
+        # 色の出現履歴（バランスの取れた色分布のため）
+        self.color_history = []
+        self.history_max_size = 8  # 履歴の最大サイズ
+        
+        # 難易度設定（0.0-1.0、高いほど難しい）
+        self.difficulty = 0.5
+        
         # 現在のぷよペアと次のぷよペア
         self.current_pair = None
         self.next_pair = None
+        
+        # お邪魔ぷよの発生カウンター
+        self.obstacle_counter = 0
+        self.obstacle_threshold = 25  # この回数ぷよを配置するとお邪魔ぷよが発生
         
         # 初期ペアを生成
         self.generate_initial_pairs()
     
     def generate_random_color(self):
         """
-        ランダムな色を生成
+        バランスの取れたランダムな色を生成
+        履歴に基づいて、最近出現していない色が出やすくなる
         
         Returns:
             int: ランダムな色（1-4）
         """
-        return self.random.choice(self.available_colors)
+        # 完全にランダムな場合（20%の確率）
+        if self.random.random() < 0.2:
+            return self.random.choice(self.available_colors)
+        
+        # 履歴に基づいた重み付け
+        if len(self.color_history) > 0:
+            # 各色の出現回数をカウント
+            color_counts = {color: 0 for color in self.available_colors}
+            for color in self.color_history:
+                if color in color_counts:
+                    color_counts[color] += 1
+            
+            # 出現回数が少ない色ほど重みを大きくする
+            weights = {}
+            max_count = max(color_counts.values()) if color_counts else 1
+            for color, count in color_counts.items():
+                # 出現回数が少ないほど重みが大きくなる
+                weights[color] = max_count - count + 1
+            
+            # 重み付き抽選
+            total_weight = sum(weights.values())
+            r = self.random.uniform(0, total_weight)
+            cumulative_weight = 0
+            for color, weight in weights.items():
+                cumulative_weight += weight
+                if r <= cumulative_weight:
+                    selected_color = color
+                    break
+            else:
+                # 万が一の場合は完全ランダム
+                selected_color = self.random.choice(self.available_colors)
+        else:
+            # 履歴がない場合は完全ランダム
+            selected_color = self.random.choice(self.available_colors)
+        
+        # 履歴を更新
+        self.color_history.append(selected_color)
+        if len(self.color_history) > self.history_max_size:
+            self.color_history.pop(0)  # 古い履歴を削除
+        
+        return selected_color
     
     def create_random_puyo_pair(self, x=2, y=0):
         """
         ランダムな色のぷよペアを作成
+        難易度に応じて同色ペアの出現確率を調整
         
         Args:
             x (int): ペアの初期X座標（デフォルト: 2）
@@ -46,7 +102,22 @@ class PuyoManager:
             PuyoPair: 新しいランダムなぷよペア
         """
         main_color = self.generate_random_color()
-        sub_color = self.generate_random_color()
+        
+        # 難易度に応じて同色ペアの確率を調整
+        # 難易度が低いほど同色ペアが出やすい（初心者向け）
+        same_color_chance = 0.3 - (self.difficulty * 0.2)  # 難易度0.0で30%、難易度1.0で10%
+        
+        if self.random.random() < same_color_chance:
+            # 同色ペア
+            sub_color = main_color
+        else:
+            # 異なる色のペア
+            sub_color = self.generate_random_color()
+            # メインと同じ色になった場合は再抽選（最大3回）
+            attempts = 0
+            while sub_color == main_color and attempts < 3:
+                sub_color = self.generate_random_color()
+                attempts += 1
         
         main_puyo = Puyo(main_color)
         sub_puyo = Puyo(sub_color)
@@ -93,8 +164,15 @@ class PuyoManager:
         self.current_pair.set_position(2, 1)  # 初期位置を1行下に調整
         self.current_pair.rotation = 0  # 上向きの回転状態に設定
         
+        # お邪魔ぷよカウンターを更新
+        self.obstacle_counter += 1
+        
         # 新しい次のペアを生成
-        self.next_pair = self.create_random_puyo_pair()
+        if self.should_generate_obstacle_puyo():
+            self.next_pair = self.create_obstacle_puyo_pair()
+            self.obstacle_counter = 0  # カウンターリセット
+        else:
+            self.next_pair = self.create_random_puyo_pair()
         
         return self.current_pair
     
@@ -102,7 +180,56 @@ class PuyoManager:
         """
         PuyoManagerをリセット（新しいゲーム開始時）
         """
+        # 色履歴をクリア
+        self.color_history = []
+        # 初期ペアを生成
         self.generate_initial_pairs()
+        
+    def set_difficulty(self, difficulty):
+        """
+        難易度を設定する
+        
+        Args:
+            difficulty (float): 難易度（0.0-1.0、高いほど難しい）
+        """
+        self.difficulty = max(0.0, min(1.0, difficulty))  # 0.0-1.0の範囲に制限
+    
+    def should_generate_obstacle_puyo(self):
+        """
+        お邪魔ぷよを生成すべきかどうかを判定
+        
+        Returns:
+            bool: お邪魔ぷよを生成する場合True
+        """
+        # 難易度に応じてお邪魔ぷよの発生頻度を調整
+        adjusted_threshold = self.obstacle_threshold - int(self.difficulty * 10)  # 難易度が高いほど早く発生
+        
+        # 一定回数ぷよを配置するとお邪魔ぷよが発生
+        return self.obstacle_counter >= adjusted_threshold
+    
+    def create_obstacle_puyo_pair(self, x=2, y=0):
+        """
+        お邪魔ぷよペアを作成
+        
+        Args:
+            x (int): ペアの初期X座標（デフォルト: 2）
+            y (int): ペアの初期Y座標（デフォルト: 0）
+        
+        Returns:
+            PuyoPair: お邪魔ぷよを含むペア
+        """
+        # 難易度に応じてお邪魔ぷよの数を決定
+        if self.random.random() < self.difficulty:
+            # 難易度が高い場合、両方お邪魔ぷよ
+            main_puyo = Puyo(self.OBSTACLE_PUYO)
+            sub_puyo = Puyo(self.OBSTACLE_PUYO)
+        else:
+            # 片方だけお邪魔ぷよ
+            main_puyo = Puyo(self.OBSTACLE_PUYO)
+            sub_color = self.generate_random_color()
+            sub_puyo = Puyo(sub_color)
+        
+        return PuyoPair(main_puyo, sub_puyo, x, y)
     
     def draw_next_pair_preview(self, screen_x, screen_y):
         """

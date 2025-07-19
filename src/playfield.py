@@ -374,6 +374,10 @@ class PlayField:
         if puyo is None:
             return []
         
+        # お邪魔ぷよ（色コード5）は連結グループに含めない
+        if puyo.get_color() == 5:  # お邪魔ぷよ
+            return []
+        
         # 色が異なる場合
         if puyo.get_color() != target_color:
             return []
@@ -472,6 +476,7 @@ class PlayField:
     def erase_puyo_groups(self, groups_to_erase):
         """
         指定された連結グループのぷよを消去する
+        お邪魔ぷよは隣接していれば一緒に消去される
         
         Args:
             groups_to_erase (list): 消去するグループのリスト [[(x, y), ...], ...]
@@ -483,11 +488,35 @@ class PlayField:
         """
         total_erased = 0
         
+        # 消去予定の位置を記録
+        positions_to_erase = set()
         for group in groups_to_erase:
             for x, y in group:
-                if self.is_valid_position(x, y) and self.grid[y][x] is not None:
-                    self.grid[y][x] = None
-                    total_erased += 1
+                positions_to_erase.add((x, y))
+        
+        # お邪魔ぷよの消去チェック用
+        obstacle_positions = set()
+        
+        # 通常のぷよを消去し、隣接するお邪魔ぷよを検出
+        for x, y in positions_to_erase:
+            if self.is_valid_position(x, y) and self.grid[y][x] is not None:
+                # 通常のぷよを消去
+                self.grid[y][x] = None
+                total_erased += 1
+                
+                # 隣接するお邪魔ぷよをチェック
+                for dx, dy in [(0, -1), (0, 1), (-1, 0), (1, 0)]:  # 上下左右
+                    adj_x, adj_y = x + dx, y + dy
+                    if self.is_valid_position(adj_x, adj_y) and self.grid[adj_y][adj_x] is not None:
+                        puyo = self.grid[adj_y][adj_x]
+                        if puyo.get_color() == 5:  # お邪魔ぷよ
+                            obstacle_positions.add((adj_x, adj_y))
+        
+        # お邪魔ぷよを消去
+        for x, y in obstacle_positions:
+            if self.is_valid_position(x, y) and self.grid[y][x] is not None:
+                self.grid[y][x] = None
+                total_erased += 1
         
         return total_erased
     
