@@ -80,6 +80,9 @@ class PuyoPuyoGame:
         # 最初の落下ペアを設定
         self.game_systems.initialize_first_pair()
         
+        # 初期化完了フラグを設定
+        self.game_systems.is_initializing = False
+        
         # ゲーム状態をPLAYINGに設定
         self.game_state_manager.start_game()
         

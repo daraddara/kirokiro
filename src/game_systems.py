@@ -65,6 +65,9 @@ class GameSystems:
         # ゲームオーバー関連
         self.trigger_game_over = False
         self.game_over_reason = ""
+        
+        # 初期化フラグ
+        self.is_initializing = True
     
     def debug_print(self, message):
         """
@@ -141,7 +144,8 @@ class GameSystems:
         self.current_falling_pair = self.puyo_manager.advance_to_next_pair()
         
         # 新しいぷよペアが配置できるかチェック（ゲームオーバー判定）
-        if not self.can_place_new_pair():
+        # 初期化中またはゲーム開始直後はゲームオーバー判定をスキップ
+        if not self.is_initializing and self.fall_timer > 10 and not self.can_place_new_pair():
             self.trigger_game_over = True
             self.game_over_reason = "新しいぷよペアが配置できません"
         
@@ -412,6 +416,10 @@ class GameSystems:
         
         # 現在のぷよペアの位置を取得
         main_pos, sub_pos = self.current_falling_pair.get_puyo_positions()
+        
+        # 画面外の位置は配置不可能として扱わない（画面内に入るまで待つ）
+        if main_pos[1] < 0 or sub_pos[1] < 0:
+            return True  # 画面外は一時的な状態として許可
         
         # メインぷよとサブぷよの位置が空いているかチェック
         main_empty = self.playfield.is_empty(main_pos[0], main_pos[1])

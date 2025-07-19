@@ -242,6 +242,22 @@ class GameController:
         ゲームを再開始する
         Requirements: 4.3 - ゲーム再開始機能
         """
+        # プレイフィールドをクリア
+        self.playfield.clear()
+        
+        # スコアをリセット
+        self.score_manager.reset()
+        
+        # ゲームシステムをリセット
+        self.game_systems.reset_game_over_flag()
+        self.game_systems.is_initializing = True
+        
+        # 新しいぷよペアを生成
+        self.game_systems.current_falling_pair = self.game_systems.puyo_manager.get_current_pair()
+        
+        # 初期化完了
+        self.game_systems.is_initializing = False
+        
         # ゲーム状態をリセット
         self.game_state_manager.start_game()
         
