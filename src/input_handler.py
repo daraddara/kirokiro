@@ -169,3 +169,14 @@ class InputHandler:
         Requirements: 4.4 - ゲーム再開始処理
         """
         return pyxel.btnp(pyxel.KEY_R)
+    
+    def should_start_game(self):
+        """
+        ゲーム開始を実行すべきかチェック
+        
+        Returns:
+            bool: ゲーム開始する場合True
+        
+        Requirements: 4.3 - ゲーム開始処理
+        """
+        return pyxel.btnp(pyxel.KEY_RETURN) or pyxel.btnp(pyxel.KEY_SPACE)

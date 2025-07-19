@@ -3,8 +3,8 @@ from src.playfield import PlayField
 from src.input_handler import InputHandler
 from src.puyo_manager import PuyoManager
 from src.score_manager import ScoreManager
-from src.game_state import GameStateManager
-from src.audio_manager import AudioManager, BGMType
+from src.game_state import GameStateManager, GameState
+from src.audio_manager import AudioManager, BGMType, SoundType
 from src.game_systems import GameSystems
 from src.ui_renderer import UIRenderer
 from src.game_controller import GameController

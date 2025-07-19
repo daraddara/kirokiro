@@ -360,6 +360,15 @@ class AudioManager:
             'fade_active': self.fade_active
         }
     
+    def is_bgm_playing(self):
+        """
+        BGMが再生中かどうかを確認する
+        
+        Returns:
+            bool: BGMが再生中の場合True
+        """
+        return self.current_bgm is not None and self.bgm_enabled
+    
     def cleanup(self):
         """
         AudioManagerのクリーンアップ処理
