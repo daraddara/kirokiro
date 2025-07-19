@@ -127,7 +127,7 @@ def test_advanced_game_over_detection():
         
         # 初期状態では正常
         is_game_over, reason = game.check_game_over_advanced()
-        print(f"Debug: is_game_over={is_game_over}, reason='{reason}'")
+        game.debug_print(f"is_game_over={is_game_over}, reason='{reason}'")
         assert is_game_over == False
         assert reason == "正常"
         
@@ -359,7 +359,7 @@ def test_danger_level_warning():
         
         # 高度な判定で警告が出ることを確認
         is_game_over, reason = game.check_game_over_advanced()
-        print(f"Debug: is_game_over={is_game_over}, reason='{reason}'")
+        game.debug_print(f"is_game_over={is_game_over}, reason='{reason}'")
         assert is_game_over == False  # まだゲームオーバーではない
         assert "危険レベル: 3" in reason
         

@@ -119,7 +119,17 @@ class PuyoPuyoGame:
         self.audio_manager.play_bgm(BGMType.GAME)
         
         # デバッグ: 初期状態を確認
-        print(f"Game initialized - gravity_active: {self.gravity_active}")
+        self.debug_print(f"Game initialized - gravity_active: {self.gravity_active}")
+    
+    def debug_print(self, message):
+        """
+        デバッグモードでのみメッセージを出力する
+        
+        Args:
+            message (str): 出力するメッセージ
+        """
+        if self.debug_mode:
+            print(message)
     
     def update_fall_system(self):
         """
@@ -197,10 +207,10 @@ class PuyoPuyoGame:
             if not self.chain_active:
                 self.chain_level = 1
                 self.chain_active = True
-                print(f"連鎖開始！連鎖レベル: {self.chain_level}")
+                self.debug_print(f"連鎖開始！連鎖レベル: {self.chain_level}")
             else:
                 self.chain_level += 1
-                print(f"連鎖継続！連鎖レベル: {self.chain_level}")
+                self.debug_print(f"連鎖継続！連鎖レベル: {self.chain_level}")
             
             # 連鎖表示を開始
             # Requirements: 5.3 - 連鎖数の視覚的表示
@@ -214,7 +224,7 @@ class PuyoPuyoGame:
             self.elimination_groups = erasable_groups
             
             # デバッグ情報
-            print(f"消去処理開始: {len(erasable_groups)}グループ、{sum(len(group) for group in erasable_groups)}個のぷよ")
+            self.debug_print(f"消去処理開始: {len(erasable_groups)}グループ、{sum(len(group) for group in erasable_groups)}個のぷよ")
         else:
             # 消去するものがない場合
             if self.chain_active:
@@ -241,7 +251,7 @@ class PuyoPuyoGame:
             eliminated, total_erased, group_count = self.playfield.process_puyo_elimination()
             
             if eliminated:
-                print(f"ぷよ消去完了: {total_erased}個のぷよ、{group_count}グループ")
+                self.debug_print(f"ぷよ消去完了: {total_erased}個のぷよ、{group_count}グループ")
                 
                 # 消去音または連鎖音を再生
                 # Requirements: 12.2 - ぷよ消去時・連鎖時の効果音
@@ -258,8 +268,8 @@ class PuyoPuyoGame:
                 self.score_manager.add_score(chain_score)
                 self.total_chain_score += chain_score
                 
-                print(f"スコア加算: {chain_score}点 (連鎖レベル: {self.chain_level})")
-                print(f"現在のスコア: {self.score_manager.get_score()}点")
+                self.debug_print(f"スコア加算: {chain_score}点 (連鎖レベル: {self.chain_level})")
+                self.debug_print(f"現在のスコア: {self.score_manager.get_score()}点")
                 
                 # 消去処理完了、重力処理に移行
                 self.elimination_active = False
@@ -320,14 +330,14 @@ class PuyoPuyoGame:
         
         if erasable_groups:
             # 連鎖発生！再度消去処理を開始
-            print(f"連鎖発生！{len(erasable_groups)}グループが新たに消去可能")
+            self.debug_print(f"連鎖発生！{len(erasable_groups)}グループが新たに消去可能")
             self.start_elimination_process()
         else:
             # 連鎖終了、通常のゲーム状態に戻る
             if self.chain_active:
                 self.end_chain()
             else:
-                print("消去・重力処理完了")
+                self.debug_print("消去・重力処理完了")
     
     def end_chain(self):
         """
@@ -335,7 +345,7 @@ class PuyoPuyoGame:
         Requirements: 3.4 - 連鎖の終了判定
         """
         if self.chain_active:
-            print(f"連鎖終了！最終連鎖レベル: {self.chain_level}")
+            self.debug_print(f"連鎖終了！最終連鎖レベル: {self.chain_level}")
             
             # 連鎖状態をリセット
             self.chain_active = False
@@ -348,9 +358,9 @@ class PuyoPuyoGame:
             self.chain_display_timer = 0
             
             # 連鎖終了後の処理（将来的にスコア計算などを追加）
-            print(f"連鎖完了: {final_chain_level}連鎖")
+            self.debug_print(f"連鎖完了: {final_chain_level}連鎖")
         
-        print("通常のゲーム状態に戻る")
+        self.debug_print("通常のゲーム状態に戻る")
     
     def update_chain_display_system(self):
         """
@@ -489,7 +499,7 @@ class PuyoPuyoGame:
     def test_connection_detection(self):
         """
         連結判定のテスト機能
-        Requirements: 3.1 - 連結グループの検出とデバッグ表示
+        Requirements: 3.1 - 連結グループの検出とdebug_print出力
         """
         # 連結グループを検出
         connected_groups = self.playfield.find_connected_groups()
@@ -520,7 +530,7 @@ class PuyoPuyoGame:
     def test_elimination_process(self):
         """
         消去処理のテスト機能
-        Requirements: 3.1, 5.2 - 消去処理のテストとデバッグ表示
+        Requirements: 3.1, 5.2 - 消去処理のテストとdebug_print出力
         """
         # テスト用の消去可能なぷよを配置
         # 4つの赤いぷよを2x2で配置
@@ -634,17 +644,17 @@ class PuyoPuyoGame:
         next_preview_x = playfield_x + playfield_width + 20
         next_preview_y = playfield_y + 20
         
-        # 次のぷよペアの表示エリアの背景と枠線
-        preview_width = 60
-        preview_height = 60
-        pyxel.rect(next_preview_x - 5, next_preview_y - 20, preview_width, preview_height, 1)  # 暗い青色の背景
-        pyxel.rectb(next_preview_x - 5, next_preview_y - 20, preview_width, preview_height, 7)  # 白色の枠線
+        # 次のぷよペアの表示エリアの背景と枠線（サイズを調整）
+        preview_width = 70
+        preview_height = 80
+        pyxel.rect(next_preview_x - 5, next_preview_y - 25, preview_width, preview_height, 1)  # 暗い青色の背景
+        pyxel.rectb(next_preview_x - 5, next_preview_y - 25, preview_width, preview_height, 7)  # 白色の枠線
         
-        # "NEXT" ラベルの表示
-        pyxel.text(next_preview_x + 10, next_preview_y - 15, "NEXT", 7)
+        # "NEXT" ラベルの表示（中央揃え）
+        pyxel.text(next_preview_x + 15, next_preview_y - 20, "NEXT", 7)
         
-        # 次のペアのプレビューを描画
-        self.puyo_manager.draw_next_pair_preview(next_preview_x, next_preview_y)
+        # 次のペアのプレビューを描画（中央に配置）
+        self.puyo_manager.draw_next_pair_preview(next_preview_x + 11, next_preview_y + 10)
         
         # 操作説明パネルの表示
         # Requirements: 4.1 - 基本UI要素の実装
@@ -660,65 +670,30 @@ class PuyoPuyoGame:
         # 操作説明のタイトル
         pyxel.text(controls_x + 10, controls_y + 5, "CONTROLS:", 10)  # 緑色のタイトル
         
-        # 操作説明の表示（2列レイアウト）
+        # 操作説明の表示
         col1_x = controls_x + 10
         col2_x = controls_x + 160
         
-        # 左列
+        # 基本操作（常に表示）
         pyxel.text(col1_x, controls_y + 20, "Arrow Keys: Move/Drop", 7)
         pyxel.text(col1_x, controls_y + 30, "X/UP: Rotate CW", 7)
         pyxel.text(col1_x, controls_y + 40, "Z: Rotate CCW", 7)
         pyxel.text(col1_x, controls_y + 50, "R: Restart Game", 7)
         pyxel.text(col1_x, controls_y + 60, "Q/ESC: Quit Game", 7)
         
-        # 右列（デバッグ用）
-        pyxel.text(col2_x, controls_y + 20, "G: Test Gravity", 6)
-        pyxel.text(col2_x, controls_y + 30, "C: Test Connection", 6)
-        pyxel.text(col2_x, controls_y + 40, "E: Test Elimination", 6)
-        pyxel.text(col2_x, controls_y + 50, "A: Test Chain", 6)
+        # デバッグ用操作（デバッグモード時のみ表示）
+        if self.debug_mode:
+            pyxel.text(col2_x, controls_y + 20, "G: Test Gravity", 6)
+            pyxel.text(col2_x, controls_y + 30, "C: Test Connection", 6)
+            pyxel.text(col2_x, controls_y + 40, "E: Test Elimination", 6)
+            pyxel.text(col2_x, controls_y + 50, "A: Test Chain", 6)
         
-        # ゲーム情報パネルの表示
-        info_x = 10
-        info_y = 10
-        info_width = 70
-        info_height = 60
-        
-        # ゲーム情報パネルの背景と枠線
-        pyxel.rect(info_x, info_y, info_width, info_height, 1)  # 暗い青色の背景
-        pyxel.rectb(info_x, info_y, info_width, info_height, 7)  # 白色の枠線
-        
-        # デバッグ情報の表示
-        pyxel.text(info_x + 5, info_y + 5, f"Frame: {self.frame_count}", 7)
-        
-        # 重力処理状態の表示
-        if self.gravity_active:
-            pyxel.text(info_x + 5, info_y + 20, "GRAVITY ACTIVE", 8)  # 赤色で表示
-        else:
-            pyxel.text(info_x + 5, info_y + 20, "Gravity: Idle", 7)   # 白色で表示
-        
-        # 消去処理状態の表示
-        if self.elimination_active:
-            pyxel.text(info_x + 5, info_y + 30, "ELIMINATION ACTIVE", 9)  # オレンジ色で表示
-        else:
-            pyxel.text(info_x + 5, info_y + 30, "Elimination: Idle", 7)   # 白色で表示
-        
-        # 現在のぷよペア状態の表示
-        if self.current_falling_pair is not None:
-            pair_pos = self.current_falling_pair.get_position()
-            pyxel.text(info_x + 5, info_y + 40, f"Pair: ({pair_pos[0]}, {pair_pos[1]})", 7)
-        else:
-            pyxel.text(info_x + 5, info_y + 40, "Pair: None", 7)
-        
-        # 連鎖状態の表示
-        if self.chain_active:
-            pyxel.text(info_x + 5, info_y + 50, f"CHAIN: {self.chain_level}", 11)  # 緑色で表示
-        else:
-            pyxel.text(info_x + 5, info_y + 50, "Chain: None", 7)   # 白色で表示
+        # デバッグ情報パネルは削除（不要な開発用情報表示を除去）
         
         # スコア表示エリア
         # Requirements: 4.1 - スコア表示エリアのレイアウト
         score_area_x = next_preview_x - 5
-        score_area_y = next_preview_y + preview_height + 10
+        score_area_y = next_preview_y + preview_height - 15
         score_area_width = preview_width
         score_area_height = 60
         

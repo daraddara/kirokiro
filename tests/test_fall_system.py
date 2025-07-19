@@ -226,7 +226,7 @@ def test_puyo_pair_rotation_near_bottom():
     assert success == True
     
     main_pos, sub_pos = pair.get_puyo_positions()
-    print(f"Debug: After rotation - main_pos={main_pos}, sub_pos={sub_pos}")
+    # Debug: After rotation - main_pos and sub_pos positions are checked in assertions
     
     # キックシステムにより位置が調整される可能性がある
     assert main_pos[1] == 11 or main_pos[1] == 10  # Y座標は11または10
