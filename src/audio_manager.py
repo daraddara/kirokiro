@@ -39,6 +39,7 @@ class AudioManager:
         self.bgm_playing = False
         self.current_bgm = None
         self.bgm_volume = 0.7  # BGM音量 (0.0-1.0)
+        self.bgm_enabled = True  # BGM有効フラグ
         
         # 効果音関連の状態
         self.sound_enabled = True
@@ -279,6 +280,24 @@ class AudioManager:
         self.sound_enabled = not self.sound_enabled
         print(f"Sound {'enabled' if self.sound_enabled else 'disabled'}")
         return self.sound_enabled
+        
+    def toggle_bgm(self):
+        """
+        BGMの有効/無効を切り替える
+        Returns:
+            bool: 切り替え後のBGM有効状態
+        """
+        if self.bgm_playing:
+            self.stop_bgm()
+            self.bgm_enabled = False
+        else:
+            self.bgm_enabled = True
+            # 前回再生していたBGMがあれば再開
+            if self.current_bgm:
+                self.play_bgm(self.current_bgm)
+        
+        print(f"BGM {'enabled' if self.bgm_enabled else 'disabled'}")
+        return self.bgm_enabled
     
     def fade_bgm(self, target_volume: float, duration_frames: int, callback=None):
         """

@@ -7,6 +7,7 @@ from src.puyo_manager import PuyoManager
 from src.score_manager import ScoreManager
 from src.game_state import GameStateManager, GameState
 from src.audio_manager import AudioManager, SoundType, BGMType
+from src.ui_elements import Button, Slider, Label, Panel, UIManager
 
 
 class PuyoPuyoGame:
