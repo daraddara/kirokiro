@@ -80,6 +80,9 @@ class PuyoPuyoGame:
         # 最初の落下ペアを設定
         self.game_systems.initialize_first_pair()
         
+        # ゲーム状態をPLAYINGに設定
+        self.game_state_manager.start_game()
+        
         # ゲーム開始時のBGM再生
         self.audio_manager.play_bgm(BGMType.GAME)
         

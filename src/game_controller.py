@@ -84,7 +84,16 @@ class GameController:
         プレイ中状態での処理
         Requirements: 4.3 - プレイ中状態の処理とゲームオーバー判定
         """
-        # ゲームオーバー判定
+        # GameSystemsからのゲームオーバーフラグをチェック
+        trigger_game_over, game_over_reason = self.game_systems.get_game_over_status()
+        
+        if trigger_game_over:
+            # ゲームオーバー処理
+            self.handle_game_over(game_over_reason)
+            self.game_systems.reset_game_over_flag()
+            return
+        
+        # 従来のゲームオーバー判定も維持（上端到達判定）
         is_game_over, reason = self.check_game_over_advanced()
         
         if is_game_over:
@@ -203,7 +212,7 @@ class GameController:
             reason (str): ゲームオーバーの理由
         """
         # ゲーム状態をゲームオーバーに変更
-        self.game_state_manager.game_over()
+        self.game_state_manager.end_game()
         
         # ゲームオーバーの理由を記録
         self.game_over_reason = reason

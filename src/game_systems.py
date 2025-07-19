@@ -61,6 +61,10 @@ class GameSystems:
         
         # デバッグモード
         self.debug_mode = False
+        
+        # ゲームオーバー関連
+        self.trigger_game_over = False
+        self.game_over_reason = ""
     
     def debug_print(self, message):
         """
@@ -135,6 +139,11 @@ class GameSystems:
         
         # 次のぷよペアに進む
         self.current_falling_pair = self.puyo_manager.advance_to_next_pair()
+        
+        # 新しいぷよペアが配置できるかチェック（ゲームオーバー判定）
+        if not self.can_place_new_pair():
+            self.trigger_game_over = True
+            self.game_over_reason = "新しいぷよペアが配置できません"
         
         # 落下タイマーをリセット
         self.fall_timer = 0
@@ -390,3 +399,45 @@ class GameSystems:
             tuple: (elimination_active, elimination_timer, elimination_groups)
         """
         return self.elimination_active, self.elimination_timer, self.elimination_groups
+    
+    def can_place_new_pair(self):
+        """
+        新しいぷよペアが配置できるかチェック
+        
+        Returns:
+            bool: 配置可能な場合True
+        """
+        if self.current_falling_pair is None:
+            return True
+        
+        # 現在のぷよペアの位置を取得
+        main_pos, sub_pos = self.current_falling_pair.get_puyo_positions()
+        
+        # メインぷよとサブぷよの位置が空いているかチェック
+        main_empty = self.playfield.is_empty(main_pos[0], main_pos[1])
+        sub_empty = self.playfield.is_empty(sub_pos[0], sub_pos[1])
+        
+        # 両方の位置が空いている場合のみ配置可能
+        if not main_empty or not sub_empty:
+            self.debug_print(f"ゲームオーバー: 新しいぷよペアが配置不可能")
+            self.debug_print(f"メインぷよ位置 {main_pos} は空か: {main_empty}")
+            self.debug_print(f"サブぷよ位置 {sub_pos} は空か: {sub_empty}")
+            return False
+        
+        return True
+    
+    def get_game_over_status(self):
+        """
+        ゲームオーバー状態を取得
+        
+        Returns:
+            tuple: (trigger_game_over, game_over_reason)
+        """
+        return self.trigger_game_over, self.game_over_reason
+    
+    def reset_game_over_flag(self):
+        """
+        ゲームオーバーフラグをリセット
+        """
+        self.trigger_game_over = False
+        self.game_over_reason = ""
