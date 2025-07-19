@@ -21,7 +21,7 @@ class PuyoPair:
         self.sub_puyo = sub_puyo
         self.x = x  # ペアの基準位置X
         self.y = y  # ペアの基準位置Y
-        self.rotation = 0  # 回転状態（0-3: 上、右、下、左）
+        self.rotation = 2  # 回転状態（0-3: 上、右、下、左）- 初期状態を下向きに設定
         
         # 初期位置を設定
         self._update_puyo_positions()

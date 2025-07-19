@@ -160,9 +160,8 @@ class PuyoManager:
         self.current_pair = self.next_pair
         
         # 初期位置を設定（中央上部）
-        # サブぷよが画面内に収まるように、下向きの回転状態で配置
+        # PuyoPairの初期回転状態が下向きなので、そのまま使用
         self.current_pair.set_position(2, 0)  # 初期位置を上端に設定
-        self.current_pair.rotation = 2  # 下向きの回転状態に設定（サブぷよが下に来る）
         
         # お邪魔ぷよカウンターを更新
         self.obstacle_counter += 1

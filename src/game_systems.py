@@ -144,8 +144,8 @@ class GameSystems:
         self.current_falling_pair = self.puyo_manager.advance_to_next_pair()
         
         # 新しいぷよペアが配置できるかチェック（ゲームオーバー判定）
-        # 初期化中またはゲーム開始直後はゲームオーバー判定をスキップ
-        if not self.is_initializing and self.fall_timer > 10 and not self.can_place_new_pair():
+        # 初期化中はゲームオーバー判定をスキップ
+        if not self.is_initializing and not self.can_place_new_pair():
             self.trigger_game_over = True
             self.game_over_reason = "新しいぷよペアが配置できません"
         
