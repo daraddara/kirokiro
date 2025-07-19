@@ -119,9 +119,9 @@ class InputHandler:
         ゲーム終了を実行すべきかチェック
         
         Returns:
-            bool: ゲーム終了する場合True
+            bool: ゲーム終了する場合True（現在は無効化）
         """
-        return pyxel.btnp(pyxel.KEY_Q) or pyxel.btnp(pyxel.KEY_ESCAPE)
+        return False  # Q、ESCキーでの強制終了機能を無効化
     
     def should_test_gravity(self):
         """

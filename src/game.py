@@ -26,8 +26,8 @@ class PuyoPuyoGame:
         """
         Pyxelアプリケーションの初期化
         """
-        # 画面サイズの設定（320x480ピクセル - デザイン文書に基づく）
-        pyxel.init(320, 480, title="Puyo Puyo Puzzle Game")
+        # 画面サイズの設定（320x380ピクセル - レイアウト最適化）
+        pyxel.init(320, 380, title="Puyo Puyo Puzzle Game")
         
         # ゲーム状態の初期化
         self.initialize_game()

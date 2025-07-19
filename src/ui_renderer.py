@@ -239,40 +239,40 @@ class UIRenderer:
     
     def draw_controls_panel(self, debug_mode):
         """
-        操作説明パネルの描画
+        操作説明パネルの描画 - スコア欄の下に配置
         
         Args:
             debug_mode: デバッグモードフラグ
         """
-        controls_x = 10
-        controls_y = 380
-        controls_width = 300
-        controls_height = 90
+        # スコア欄の下に配置
+        controls_x = self.score_area_x
+        controls_y = self.score_area_y + self.score_area_height + 10
+        # サイズを内容に合わせて調整
+        controls_width = self.score_area_width
+        controls_height = 70  # コンパクトに縮小
         
         # 操作説明パネルの背景と枠線
         pyxel.rect(controls_x, controls_y, controls_width, controls_height, 1)  # 暗い青色の背景
         pyxel.rectb(controls_x, controls_y, controls_width, controls_height, 7)  # 白色の枠線
         
         # 操作説明のタイトル
-        pyxel.text(controls_x + 10, controls_y + 5, "CONTROLS:", 10)  # 緑色のタイトル
+        pyxel.text(controls_x + 5, controls_y + 5, "CONTROLS:", 10)  # 緑色のタイトル
         
-        # 操作説明の表示
-        col1_x = controls_x + 10
-        col2_x = controls_x + 160
-        
-        # 基本操作（常に表示）
-        pyxel.text(col1_x, controls_y + 20, "Arrow Keys: Move/Drop", 7)
-        pyxel.text(col1_x, controls_y + 30, "X/UP: Rotate CW", 7)
-        pyxel.text(col1_x, controls_y + 40, "Z: Rotate CCW", 7)
-        pyxel.text(col1_x, controls_y + 50, "R: Restart Game", 7)
-        pyxel.text(col1_x, controls_y + 60, "Q/ESC: Quit Game", 7)
+        # 操作説明の表示（縦に並べる）
+        text_x = controls_x + 5
+        pyxel.text(text_x, controls_y + 15, "Arrow: Move/Drop", 7)
+        pyxel.text(text_x, controls_y + 25, "X/UP: Rotate CW", 7)
+        pyxel.text(text_x, controls_y + 35, "Z: Rotate CCW", 7)
+        pyxel.text(text_x, controls_y + 45, "R: Restart", 7)
         
         # デバッグ用操作（デバッグモード時のみ表示）
         if debug_mode:
-            pyxel.text(col2_x, controls_y + 20, "G: Test Gravity", 6)
-            pyxel.text(col2_x, controls_y + 30, "C: Test Connection", 6)
-            pyxel.text(col2_x, controls_y + 40, "E: Test Elimination", 6)
-            pyxel.text(col2_x, controls_y + 50, "A: Test Chain", 6)
+            debug_x = controls_x + 5
+            debug_y = controls_y + controls_height + 5
+            pyxel.text(debug_x, debug_y + 0, "G: Test Gravity", 6)
+            pyxel.text(debug_x, debug_y + 10, "C: Test Connection", 6)
+            pyxel.text(debug_x, debug_y + 20, "E: Test Elimination", 6)
+            pyxel.text(debug_x, debug_y + 30, "A: Test Chain", 6)
     
     def draw_final_score_display(self, show_final_score):
         """
