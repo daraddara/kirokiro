@@ -425,8 +425,8 @@ def test_puyo_manager_advance_pair():
     assert manager.get_next_pair() != original_next
     assert manager.get_next_pair() is not None
     
-    # 現在のペアの位置がリセットされる
-    assert manager.get_current_pair().get_position() == (2, 0)
+    # 現在のペアの位置がリセットされる（サブぷよが画面内に収まるよう1行下に配置）
+    assert manager.get_current_pair().get_position() == (2, 1)
     
     print("[OK] PuyoManager advance pair test passed")
 
