@@ -42,9 +42,10 @@ class PuyoPuyoGame:
         
         # 落下システムの設定
         # Requirements: 2.1 - 重力に従ってぷよを移動させる
+        # Requirements: 14.2 - 操作感の調整、アニメーション速度の最適化
         self.fall_timer = 0  # 自動落下タイマー
-        self.fall_interval = 45  # 通常の落下間隔（45フレーム = 0.75秒）- 操作感改善
-        self.fast_fall_interval = 2  # 高速落下間隔（2フレーム）- より素早い高速落下
+        self.fall_interval = 40  # 通常の落下間隔（45→40フレームに短縮 = 約0.67秒）- 操作感改善
+        self.fast_fall_interval = 1  # 高速落下間隔（2→1フレームに短縮）- より素早い高速落下
         
         # 現在操作中のぷよペア
         self.current_falling_pair = None

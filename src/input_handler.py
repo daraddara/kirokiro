@@ -16,12 +16,13 @@ class InputHandler:
         self.right_repeat_timer = 0
         self.down_repeat_timer = 0
         
-        # キーリピートの設定
-        self.repeat_delay = 15  # 初回リピートまでのフレーム数
-        self.repeat_interval = 3  # リピート間隔のフレーム数
+        # キーリピートの設定（操作感改善）
+        # Requirements: 14.2 - 操作感の調整
+        self.repeat_delay = 10  # 初回リピートまでのフレーム数（15→10に短縮）
+        self.repeat_interval = 2  # リピート間隔のフレーム数（3→2に短縮）
         
         # 高速落下の設定
-        self.fast_drop_interval = 2  # 高速落下時のフレーム間隔
+        self.fast_drop_interval = 1  # 高速落下時のフレーム間隔（2→1に短縮）
     
     def update(self):
         """
