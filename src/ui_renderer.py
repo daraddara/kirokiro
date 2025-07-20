@@ -339,7 +339,3 @@ class UIRenderer:
         restart_text = "Press R to Restart"
         restart_x = final_score_x + (final_score_width - len(restart_text) * 4) // 2
         pyxel.text(restart_x, final_score_y + 80, restart_text, 10)  # 緑色
-        
-        menu_text = "Press ESC for Menu"
-        menu_x = final_score_x + (final_score_width - len(menu_text) * 4) // 2
-        pyxel.text(menu_x, final_score_y + 100, menu_text, 7)  # 白色
