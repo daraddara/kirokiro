@@ -29,3 +29,10 @@ var/
 # OS specific
 .DS_Store
 Thumbs.db
+
+# Build directories
+package_build/
+package/
+
+# Pyxel package files
+*.pyxapp
