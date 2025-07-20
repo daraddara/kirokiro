@@ -1,3 +1,3 @@
 """
-Test package for Puyo Puyo Puzzle Game
+Test package for Kiro Kiro Puzzle Game
 """

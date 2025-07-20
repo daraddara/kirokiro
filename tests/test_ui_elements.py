@@ -8,7 +8,7 @@ import os
 # Add the parent directory to sys.path to allow imports from src
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.game import PuyoPuyoGame
+from src.game import KiroKiroGame
 import unittest.mock as mock
 
 
@@ -97,8 +97,8 @@ def test_ui_elements():
          mock.patch('src.puyo.pyxel', mock_pyxel):
         
         # Initialize game
-        game = PuyoPuyoGame.__new__(PuyoPuyoGame)
-        mock_pyxel.init(320, 480, "Puyo Puyo Puzzle Game")
+        game = KiroKiroGame.__new__(KiroKiroGame)
+        mock_pyxel.init(320, 480, "Kiro Kiro Puzzle Game")
         game.initialize_game()
         
         # Execute draw method

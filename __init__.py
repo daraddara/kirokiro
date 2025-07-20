@@ -1,3 +1,3 @@
 """
-Puyo Puyo Puzzle Game package
+Kiro Kiro Puzzle Game package
 """

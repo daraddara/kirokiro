@@ -39,9 +39,15 @@ class UIRenderer:
         self.preview_width = 70
         self.preview_height = 80
         
-        # スコア表示エリア設定
+        # NEXT NEXT表示エリア設定
+        self.next_next_preview_x = self.next_preview_x
+        self.next_next_preview_y = self.next_preview_y + self.preview_height + 5
+        self.next_next_preview_width = 50
+        self.next_next_preview_height = 50
+        
+        # スコア表示エリア設定（NEXT NEXTの下に配置）
         self.score_area_x = self.next_preview_x - 5
-        self.score_area_y = self.next_preview_y + self.preview_height - 15
+        self.score_area_y = self.next_next_preview_y + self.next_next_preview_height - 10
         self.score_area_width = self.preview_width
         self.score_area_height = 60
     
@@ -65,7 +71,7 @@ class UIRenderer:
         """
         ゲームタイトルの描画
         """
-        title_text = "Puyo Puyo Puzzle Game"
+        title_text = "Kiro Kiro Puzzle Game"
         title_x = (320 - len(title_text) * 4) // 2  # 中央揃え
         pyxel.text(title_x, 50, title_text, 7)  # 白色で表示
     
@@ -131,6 +137,22 @@ class UIRenderer:
         
         # 次のペアのプレビューを描画（中央に配置）
         self.puyo_manager.draw_next_pair_preview(self.next_preview_x + 11, self.next_preview_y + 10)
+    
+    def draw_next_next_preview(self):
+        """
+        次の次のぷよペアのプレビュー表示
+        """
+        # 次の次のぷよペアの表示エリアの背景と枠線
+        pyxel.rect(self.next_next_preview_x - 5, self.next_next_preview_y - 15, 
+                  self.next_next_preview_width, self.next_next_preview_height, 1)  # 暗い青色の背景
+        pyxel.rectb(self.next_next_preview_x - 5, self.next_next_preview_y - 15, 
+                   self.next_next_preview_width, self.next_next_preview_height, 7)  # 白色の枠線
+        
+        # "NEXT" ラベルの表示（小さめ）
+        pyxel.text(self.next_next_preview_x + 5, self.next_next_preview_y - 10, "NEXT", 6)  # 薄い色で小さく
+        
+        # 次の次のペアのプレビューを描画（小さく中央に配置）
+        self.puyo_manager.draw_next_next_pair_preview(self.next_next_preview_x + 9, self.next_next_preview_y + 10)
     
     def draw_score_area(self, score_animation_active, score_animation_timer, 
                        score_animation_phase, score_increment_amount):

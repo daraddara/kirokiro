@@ -16,7 +16,7 @@ from src.game_controller import GameController
 from src.debug_tools import DebugTools
 
 
-class PuyoPuyoGame:
+class KiroKiroGame:
     """
     メインゲームクラス - Pyxelアプリケーションを管理
     Requirements: 1.1, 1.2
@@ -27,7 +27,7 @@ class PuyoPuyoGame:
         Pyxelアプリケーションの初期化
         """
         # 画面サイズの設定（320x380ピクセル - レイアウト最適化）
-        pyxel.init(320, 380, title="Puyo Puyo Puzzle Game")
+        pyxel.init(320, 380, title="Kiro Kiro Puzzle Game")
         
         # ゲーム状態の初期化
         self.initialize_game()
@@ -199,6 +199,9 @@ class PuyoPuyoGame:
         # 次のぷよペアのプレビュー表示
         self.ui_renderer.draw_next_preview()
         
+        # 次の次のぷよペアのプレビュー表示
+        self.ui_renderer.draw_next_next_preview()
+        
         # スコア表示エリア
         score_info = self.game_controller.get_score_display_info()
         self.ui_renderer.draw_score_area(*score_info)
@@ -259,4 +262,4 @@ class PuyoPuyoGame:
 
 if __name__ == "__main__":
     # ゲームを開始
-    game = PuyoPuyoGame()
+    game = KiroKiroGame()

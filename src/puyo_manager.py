@@ -28,9 +28,10 @@ class PuyoManager:
         # 難易度設定（0.0-1.0、高いほど難しい）
         self.difficulty = 0.5
         
-        # 現在のぷよペアと次のぷよペア
+        # 現在のぷよペアと次のぷよペア、次の次のぷよペア
         self.current_pair = None
         self.next_pair = None
+        self.next_next_pair = None
         
         # お邪魔ぷよの発生カウンター
         self.obstacle_counter = 0
@@ -126,10 +127,11 @@ class PuyoManager:
     
     def generate_initial_pairs(self):
         """
-        初期のぷよペア（現在と次）を生成
+        初期のぷよペア（現在、次、次の次）を生成
         """
         self.current_pair = self.create_random_puyo_pair()
         self.next_pair = self.create_random_puyo_pair()
+        self.next_next_pair = self.create_random_puyo_pair()
     
     def get_current_pair(self):
         """
@@ -149,15 +151,25 @@ class PuyoManager:
         """
         return self.next_pair
     
+    def get_next_next_pair(self):
+        """
+        次の次のぷよペアを取得
+        
+        Returns:
+            PuyoPair: 次の次のぷよペア
+        """
+        return self.next_next_pair
+    
     def advance_to_next_pair(self):
         """
-        次のぷよペアを現在のペアにし、新しい次のペアを生成
+        ぷよペアを順次進める（現在→次→次の次→新規生成）
         
         Returns:
             PuyoPair: 新しい現在のぷよペア
         """
-        # 次のペアを現在のペアにする
+        # ペアを順次進める
         self.current_pair = self.next_pair
+        self.next_pair = self.next_next_pair
         
         # 初期位置を設定（中央上部）
         # PuyoPairの初期回転状態が下向きなので、そのまま使用
@@ -166,12 +178,12 @@ class PuyoManager:
         # お邪魔ぷよカウンターを更新
         self.obstacle_counter += 1
         
-        # 新しい次のペアを生成
+        # 新しい次の次のペアを生成
         if self.should_generate_obstacle_puyo():
-            self.next_pair = self.create_obstacle_puyo_pair()
+            self.next_next_pair = self.create_obstacle_puyo_pair()
             self.obstacle_counter = 0  # カウンターリセット
         else:
-            self.next_pair = self.create_random_puyo_pair()
+            self.next_next_pair = self.create_random_puyo_pair()
         
         return self.current_pair
     
@@ -181,7 +193,9 @@ class PuyoManager:
         """
         # 色履歴をクリア
         self.color_history = []
-        # 初期ペアを生成
+        # お邪魔ぷよカウンターをリセット
+        self.obstacle_counter = 0
+        # 初期ペア（現在、次、次の次）を生成
         self.generate_initial_pairs()
         
     def set_difficulty(self, difficulty):
@@ -248,3 +262,22 @@ class PuyoManager:
             
             # サブぷよを上に描画（次のペアは常に上向きで表示）
             sub_puyo.draw(screen_x, screen_y - 24)
+    
+    def draw_next_next_pair_preview(self, screen_x, screen_y):
+        """
+        次の次のぷよペアのプレビューを描画（小さめサイズ）
+        
+        Args:
+            screen_x (int): 描画位置X
+            screen_y (int): 描画位置Y
+        """
+        if self.next_next_pair is not None:
+            # 次の次のペアをより小さく表示（プレビュー用）
+            main_puyo = self.next_next_pair.get_main_puyo()
+            sub_puyo = self.next_next_pair.get_sub_puyo()
+            
+            # メインぷよを描画（16x16サイズで小さく）
+            main_puyo.draw_small(screen_x, screen_y)
+            
+            # サブぷよを上に描画（16x16サイズで小さく）
+            sub_puyo.draw_small(screen_x, screen_y - 16)

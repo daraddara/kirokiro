@@ -1,11 +1,11 @@
-from src.game import PuyoPuyoGame
+from src.game import KiroKiroGame
 
 
 def main():
     """
     ゲームのエントリーポイント
     """
-    PuyoPuyoGame()
+    KiroKiroGame()
 
 
 if __name__ == "__main__":

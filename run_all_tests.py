@@ -1,5 +1,5 @@
 """
-Run all tests for the Puyo Puyo Puzzle Game
+Run all tests for the Kiro Kiro Puzzle Game
 """
 
 import os
